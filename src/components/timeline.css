@@ -1,0 +1,31 @@
+/* Optional: Add this to your CSS file if you want to customize the scrollbar */
+.timeline-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .timeline-scroll::-webkit-scrollbar-track {
+    background: #e8ecf7;
+  }
+  
+  .timeline-scroll::-webkit-scrollbar-thumb {
+    background-color: #8a9ad4;
+    border-radius: 20px;
+  }
+  
+  .timeline-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #8a9ad4 #e8ecf7;
+  }
+  
+  /* Hide the white line on mobile */
+  @media (max-width: 768px) {
+    .timeline-scroll {
+      scrollbar-width: thin;
+    }
+  
+    /* Fix for the white line on the left */
+    section[class*="bg-[#e8ecf7]"] > div > div > div:first-child > div:first-child {
+      background-color: #e8ecf7;
+    }
+  }
+  
