@@ -1,31 +1,106 @@
-/* Optional: Add this to your CSS file if you want to customize the scrollbar */
-.timeline-scroll::-webkit-scrollbar {
-    width: 6px;
+/* Scroll hint styling - Only show on small screens */
+@media (max-width: 768px) {
+  .scroll-hint {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 10px;
+    pointer-events: none;
+    z-index: 10;
   }
-  
-  .timeline-scroll::-webkit-scrollbar-track {
-    background: #e8ecf7;
+
+  .scroll-blur {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: linear-gradient(to top, rgba(232, 236, 247, 0.9), rgba(232, 236, 247, 0));
+    z-index: -1;
   }
-  
-  .timeline-scroll::-webkit-scrollbar-thumb {
-    background-color: #8a9ad4;
+
+  .scroll-text {
+    color: #8e3e3e;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 16px;
+    background-color: rgba(255, 255, 255, 0.8);
     border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    animation: bounce 2s infinite;
   }
-  
+}
+
+@keyframes bounce {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Custom scrollbar for desktop */
+.timeline-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.timeline-scroll::-webkit-scrollbar-track {
+  background: #e8ecf7;
+}
+
+.timeline-scroll::-webkit-scrollbar-thumb {
+  background: #8a9ad4;
+  border-radius: 10px;
+}
+
+.timeline-scroll::-webkit-scrollbar-thumb:hover {
+  background: #6b78b4;
+}
+
+/* Hide the white line on mobile */
+@media (max-width: 768px) {
   .timeline-scroll {
     scrollbar-width: thin;
-    scrollbar-color: #8a9ad4 #e8ecf7;
   }
-  
-  /* Hide the white line on mobile */
-  @media (max-width: 768px) {
-    .timeline-scroll {
-      scrollbar-width: thin;
-    }
-  
-    /* Fix for the white line on the left */
-    section[class*="bg-[#e8ecf7]"] > div > div > div:first-child > div:first-child {
-      background-color: #e8ecf7;
-    }
+
+  /* Fix for the white line on the left */
+  section[class*="bg-[#e8ecf7]"] > div > div > div:first-child > div:first-child {
+    background-color: #e8ecf7;
   }
-  
+}
+
+/* Responsive timeline styles */
+@media (max-width: 1200px) {
+  .timeline-container .w-1vw {
+    min-width: 10px;
+    min-height: 10px;
+  }
+
+  .timeline-container .border-0_4vw {
+    border-width: 2px;
+  }
+}
+
+@media (max-width: 768px) {
+  .timeline-container .w-1vw {
+    min-width: 8px;
+    min-height: 8px;
+  }
+
+  .timeline-container .border-0_4vw {
+    border-width: 1px;
+  }
+}

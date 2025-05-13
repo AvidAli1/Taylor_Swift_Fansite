@@ -1,13 +1,32 @@
-"use client";
+"use client"
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "./ui/Button";
-import { useNavigate } from "react-router-dom";
+import { ChevronLeft, ChevronRight } from "lucide-react"
+import { Button } from "./ui/Button"
+import { useNavigate } from "react-router-dom"
+import { useEffect, useState } from "react"
 
-import "./timeline.css";
+import "./timeline.css"
 
 export default function Timeline() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
+  const [showScrollHint, setShowScrollHint] = useState(true)
+
+  // Handle scroll event to hide the scroll hint
+  useEffect(() => {
+    const timelineElement = document.querySelector(".mobile-timeline-container")
+
+    const handleScroll = () => {
+      if (timelineElement && timelineElement.scrollTop > 0) {
+        setShowScrollHint(false)
+      }
+    }
+
+    timelineElement?.addEventListener("scroll", handleScroll)
+
+    return () => {
+      timelineElement?.removeEventListener("scroll", handleScroll)
+    }
+  }, [])
 
   return (
     <section className="w-full bg-[#e8ecf7] py-4 md:py-8 px-2 md:px-12 flex-grow">
@@ -20,9 +39,7 @@ export default function Timeline() {
               <div className="max-w-4xl mx-auto text-center">
                 <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-8xl font-serif text-[#8e3e3e] text-center">
                   <span className="block">ON THIS DAY</span>
-                  <span className="text-sm sm:text-xl md:text-3xl lg:text-5xl block mt-1">
-                    in Taylor Swift History
-                  </span>
+                  <span className="text-sm sm:text-xl md:text-3xl lg:text-5xl block mt-1">in Taylor Swift History</span>
                 </h2>
               </div>
 
@@ -49,25 +66,23 @@ export default function Timeline() {
           <div className="flex items-center justify-center gap-1 sm:gap-2 md:gap-4 my-2 md:my-4">
             <Button
               variant="secondary"
-              className="rounded-full px-2 sm:px-4 md:px-6 text-xs sm:text-sm flex items-center gap-1 md:gap-2"
+              className="rounded-full px-2 sm:px-4 md:px-6 text-xs sm:text-sm flex items-center gap-1 md:gap-2 mr-3"
             >
               <ChevronLeft size={12} className="md:size-16" />
               <span className="hidden sm:inline">Previous Day</span>
-              <span className="sm:hidden">Prev</span>
+              <span className="sm:hidden mr-2">Prev</span>
             </Button>
 
             <div className="bg-white rounded-full px-4 sm:px-6 md:px-8 py-1 md:py-2 min-w-[120px] sm:min-w-[160px] md:min-w-[200px] border border-[#b66b6b]">
-              <span className="text-[#8e3e3e] text-sm md:text-base font-medium">
-                APRIL 20
-              </span>
+              <span className="text-[#8e3e3e] text-sm md:text-base font-medium">APRIL 20</span>
             </div>
 
             <Button
               variant="secondary"
-              className="rounded-full px-2 sm:px-4 md:px-6 text-xs sm:text-sm flex items-center gap-1 md:gap-2"
+              className="rounded-full px-2 sm:px-4 md:px-6 text-xs sm:text-sm flex items-center gap-1 md:gap-2 ml-3"
             >
               <span className="hidden sm:inline">Next Day</span>
-              <span className="sm:hidden">Next</span>
+              <span className="sm:hidden ml-2">Next</span>
               <ChevronRight size={12} className="md:size-16" />
             </Button>
           </div>
@@ -76,30 +91,28 @@ export default function Timeline() {
         {/* Timeline Section - Mobile vs Desktop layouts */}
         <div className="relative mt-6 md:mt-12 mb-4 md:mb-8 flex-grow overflow-hidden">
           {/* Mobile Timeline (Single Column) */}
-          <div className="md:hidden h-[60vh] overflow-y-auto">
+          <div className="md:hidden h-[60vh] overflow-y-auto relative mobile-timeline-container">
             <div className="relative flex justify-center">
               {/* Center line */}
               <div className="relative w-[2px] flex flex-col items-center bg-[#e8ecf7]">
-                <div className="h-[1880px] w-[3px] bg-[#8a9ad4]"></div>
+                <div className="h-[2000px] w-[3px] bg-[#8a9ad4]"></div>
 
                 {/* Circles on the line */}
                 <div className="absolute left-1/2 -translate-x-1/2 top-[0px] w-5 h-5 rounded-full bg-[#6B78B4]"></div>
-                <div className="absolute left-1/2 -translate-x-1/2 top-[200px] w-5 h-5 rounded-full bg-[#FEE6E3] border-2 border-[#6B78B4]"></div>
-                <div className="absolute left-1/2 -translate-x-1/2 top-[400px] w-5 h-5 rounded-full bg-[#FEE6E3] border-2 border-[#6B78B4]"></div>
-                <div className="absolute left-1/2 -translate-x-1/2 top-[600px] w-5 h-5 rounded-full bg-[#FEE6E3] border-2 border-[#6B78B4]"></div>
-                <div className="absolute left-1/2 -translate-x-1/2 top-[800px] w-5 h-5 rounded-full bg-[#FEE6E3] border-2 border-[#6B78B4]"></div>
-                <div className="absolute left-1/2 -translate-x-1/2 top-[1000px] w-5 h-5 rounded-full bg-[#FEE6E3] border-2 border-[#6B78B4]"></div>
+                {/*  
+                  <div className="absolute left-1/2 -translate-x-1/2 top-[200px] w-5 h-5 rounded-full bg-[#FEE6E3] border-2 border-[#6B78B4]"></div>
+                  <div className="absolute left-1/2 -translate-x-1/2 top-[400px] w-5 h-5 rounded-full bg-[#FEE6E3] border-2 border-[#6B78B4]"></div>
+                  <div className="absolute left-1/2 -translate-x-1/2 top-[600px] w-5 h-5 rounded-full bg-[#FEE6E3] border-2 border-[#6B78B4]"></div>
+                  <div className="absolute left-1/2 -translate-x-1/2 top-[800px] w-5 h-5 rounded-full bg-[#FEE6E3] border-2 border-[#6B78B4]"></div>
+                  <div className="absolute left-1/2 -translate-x-1/2 top-[1000px] w-5 h-5 rounded-full bg-[#FEE6E3] border-2 border-[#6B78B4]"></div>
+                */}
                 <div className="absolute left-1/2 -translate-x-1/2 top-[1200px] w-5 h-5 rounded-full bg-[#6B78B4]"></div>
               </div>
 
               {/* Mobile Timeline Items - All on right side */}
               <div className="absolute left-[20px] w-[calc(100%-30px)] space-y-[50px] pb-4">
                 {[1, 2, 3, 4, 5, 6].map((item, index) => (
-                  <div
-                    key={index}
-                    className="relative mt-[50px]"
-                    style={{ marginTop: index === 0 ? "20px" : "" }}
-                  >
+                  <div key={index} className="relative mt-[50px]" style={{ marginTop: index === 0 ? "20px" : "" }}>
                     <div className="bg-[#fce0e0] rounded-[10px] shadow-md p-4">
                       <div className="bg-[#fce0e0] rounded-lg px-2 py-1 text-xs text-[#8a9ad4] font-medium inline-block mb-2">
                         2024
@@ -128,6 +141,13 @@ export default function Timeline() {
                 ))}
               </div>
             </div>
+            {/* Scroll hint and button - Only show if showScrollHint is true */}
+            {showScrollHint && (
+              <div className="scroll-hint bottom-0">
+                <div className="scroll-blur"></div>
+                <span className="scroll-text">Scroll down</span>
+              </div>
+            )}
           </div>
 
           {/* Desktop Timeline (Two Columns) */}
@@ -151,33 +171,34 @@ export default function Timeline() {
               <div className="absolute left-0 w-[calc(50%-15px)] space-y-[152px] origin-top-right lg:scale-[0.75] md:scale-[0.65] py-64 px-2">
                 <div className="relative mt-[120px]">
                   <div className="relative">
-                    <img
-                      src="/images/leftSide_rectangle.png"
-                      alt="Left Rectangle"
-                      className="w-full h-auto"
-                    />
-                    <div className="absolute inset-0 p-8">
-                      <div className="bg-white rounded-lg px-3 py-1 text-xs text-[#8a9ad4] font-medium inline-block mb-2">
+                    <img src="/images/leftSide_rectangle.png" alt="Left Rectangle" className="w-full h-auto" />
+                    <div className="absolute inset-0 p-2 sm:p-4 md:p-6 lg:p-8 flex flex-col overflow-hidden mt-4">
+                      <div className="bg-white rounded-full px-2 py-1 text-xs sm:text-sm md:text-base text-[#8a9ad4] font-semibold inline-block mb-1 sm:mb-2 w-fit">
                         2024
                       </div>
-                      <div className="flex flex-col gap-2">
-                        <div className="w-full md:w-[520px] h-[260px] relative rounded-lg overflow-hidden">
+                      <div className="flex flex-col gap-1 flex-grow overflow-hidden">
+                        <div className="w-full h-0 pb-[35%] relative rounded-lg overflow-hidden">
                           <img
                             src="/images/taylor_timeline_default.jpeg"
                             alt="Taylor Swift"
-                            className="absolute inset-0 w-full h-full object-cover object-[center_35%]"
+                            className="absolute inset-0 w-[90%] h-full object-cover object-[center_35%]"
                           />
                         </div>
-                        <h3 className="text-[#8e3e3e] font-medium text-sm">
+                        <h3 className="text-[#8e3e3e] font-medium text-xs sm:text-sm line-clamp-2 mt-1">
                           Taylor and Travis Kelce vacation in Carmel-by-the-Sea
                         </h3>
-                        <Button
-                          variant="outline"
-                          className="self-start text-xs border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-4 py-1"
-                          onClick={() => navigate("/posts_details")}
-                        >
-                          Read More →
-                        </Button>
+                        <div className="flex flex-col mt-1 space-y-1">
+                          <Button
+                            variant="outline"
+                            className="self-start text-xs border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-3 py-1"
+                            onClick={() => navigate("/posts_details")}
+                          >
+                            Read More →
+                          </Button>
+                          <div className="text-blue-600 font-semibold text-xs sm:text-sm line-clamp-1">
+                            <h3>Career Event, Tree Paine, Music Industry Drama</h3>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -185,32 +206,34 @@ export default function Timeline() {
 
                 <div className="relative py-24">
                   <div className="relative">
-                    <img
-                      src="/images/leftSide_rectangle.png"
-                      alt="Left Rectangle"
-                      className="w-full h-auto"
-                    />
-                    <div className="absolute inset-0 p-8">
-                      <div className="bg-white rounded-lg px-3 py-1 text-xs text-[#8a9ad4] font-medium inline-block mb-2">
+                    <img src="/images/leftSide_rectangle.png" alt="Left Rectangle" className="w-full h-auto" />
+                    <div className="absolute inset-0 p-2 sm:p-4 md:p-6 lg:p-8 flex flex-col overflow-hidden mt-4">
+                      <div className="bg-white rounded-full px-2 py-1 text-xs sm:text-sm md:text-base text-[#8a9ad4] font-semibold inline-block mb-1 sm:mb-2 w-fit">
                         2024
                       </div>
-                      <div className="flex flex-col gap-2">
-                        <div className="w-full md:w-[520px] h-[260px] relative rounded-lg overflow-hidden">
+                      <div className="flex flex-col gap-1 flex-grow overflow-hidden">
+                        <div className="w-full h-0 pb-[35%] relative rounded-lg overflow-hidden">
                           <img
                             src="/images/taylor_timeline_default.jpeg"
                             alt="Taylor Swift"
-                            className="absolute inset-0 w-full h-full object-cover object-[center_35%]"
+                            className="absolute inset-0 w-[90%] h-full object-cover object-[center_35%]"
                           />
                         </div>
-                        <h3 className="text-[#8e3e3e] font-medium text-sm">
+                        <h3 className="text-[#8e3e3e] font-medium text-xs sm:text-sm line-clamp-2 mt-1">
                           Taylor and Travis Kelce vacation in Carmel-by-the-Sea
                         </h3>
-                        <Button
-                          variant="outline"
-                          className="self-start text-xs border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-4 py-1"
-                        >
-                          Read More →
-                        </Button>
+                        <div className="flex flex-col mt-1 space-y-1">
+                          <Button
+                            variant="outline"
+                            className="self-start text-xs border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-3 py-1"
+                            onClick={() => navigate("/posts_details")}
+                          >
+                            Read More →
+                          </Button>
+                          <div className="text-blue-600 font-semibold text-xs sm:text-sm line-clamp-1">
+                            <h3>Career Event, Tree Paine, Music Industry Drama</h3>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -218,32 +241,34 @@ export default function Timeline() {
 
                 <div className="relative py-12">
                   <div className="relative">
-                    <img
-                      src="/images/leftSide_rectangle.png"
-                      alt="Left Rectangle"
-                      className="w-full h-auto"
-                    />
-                    <div className="absolute inset-0 p-8">
-                      <div className="bg-white rounded-lg px-3 py-1 text-xs text-[#8a9ad4] font-medium inline-block mb-2">
+                    <img src="/images/leftSide_rectangle.png" alt="Left Rectangle" className="w-full h-auto" />
+                    <div className="absolute inset-0 p-2 sm:p-4 md:p-6 lg:p-8 flex flex-col overflow-hidden mt-4">
+                      <div className="bg-white rounded-full px-2 py-1 text-xs sm:text-sm md:text-base text-[#8a9ad4] font-semibold inline-block mb-1 sm:mb-2 w-fit">
                         2024
                       </div>
-                      <div className="flex flex-col gap-2">
-                        <div className="w-full md:w-[520px] h-[260px] relative rounded-lg overflow-hidden">
+                      <div className="flex flex-col gap-1 flex-grow overflow-hidden">
+                        <div className="w-full h-0 pb-[35%] relative rounded-lg overflow-hidden">
                           <img
                             src="/images/taylor_timeline_default.jpeg"
                             alt="Taylor Swift"
-                            className="absolute inset-0 w-full h-full object-cover object-[center_35%]"
+                            className="absolute inset-0 w-[90%] h-full object-cover object-[center_35%]"
                           />
                         </div>
-                        <h3 className="text-[#8e3e3e] font-medium text-sm">
+                        <h3 className="text-[#8e3e3e] font-medium text-xs sm:text-sm line-clamp-2 mt-1">
                           Taylor and Travis Kelce vacation in Carmel-by-the-Sea
                         </h3>
-                        <Button
-                          variant="outline"
-                          className="self-start text-xs border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-4 py-1"
-                        >
-                          Read More →
-                        </Button>
+                        <div className="flex flex-col mt-1 space-y-1">
+                          <Button
+                            variant="outline"
+                            className="self-start text-xs border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-3 py-1"
+                            onClick={() => navigate("/posts_details")}
+                          >
+                            Read More →
+                          </Button>
+                          <div className="text-blue-600 font-semibold text-xs sm:text-sm line-clamp-1">
+                            <h3>Career Event, Tree Paine, Music Industry Drama</h3>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -254,32 +279,34 @@ export default function Timeline() {
               <div className="absolute right-[-3px] w-[calc(50%-15px)] space-y-[76px] origin-top-left lg:scale-[0.75] md:scale-[0.65]">
                 <div className="relative mt-[12px]">
                   <div className="relative">
-                    <img
-                      src="/images/rightSide_Rectangle.png"
-                      alt="Right Rectangle"
-                      className="w-full h-auto"
-                    />
-                    <div className="absolute inset-0 py-8 px-20">
-                      <div className="bg-white rounded-lg px-3 py-1 text-xs text-[#8a9ad4] font-medium inline-block mb-2">
+                    <img src="/images/rightSide_Rectangle.png" alt="Right Rectangle" className="w-full h-auto" />
+                    <div className="absolute inset-0 p-2 sm:p-4 md:p-6 lg:p-8 flex flex-col overflow-hidden mt-4 transform translate-x-12">
+                      <div className="bg-white rounded-full px-2 py-1 text-xs sm:text-sm md:text-base text-[#8a9ad4] font-semibold inline-block mb-1 sm:mb-2 w-fit">
                         2024
                       </div>
-                      <div className="flex flex-col gap-2">
-                        <div className="w-full md:w-[520px] h-[260px] relative rounded-lg overflow-hidden">
+                      <div className="flex flex-col gap-1 flex-grow overflow-hidden">
+                        <div className="w-full h-0 pb-[35%] relative rounded-lg overflow-hidden">
                           <img
                             src="/images/taylor_timeline_default.jpeg"
                             alt="Taylor Swift"
-                            className="absolute inset-0 w-full h-full object-cover object-[center_35%]"
+                            className="absolute inset-0 w-[90%] h-full object-cover object-[center_35%]"
                           />
                         </div>
-                        <h3 className="text-[#8e3e3e] font-medium text-sm">
+                        <h3 className="text-[#8e3e3e] font-medium text-xs sm:text-sm line-clamp-2 mt-1">
                           Taylor and Travis Kelce vacation in Carmel-by-the-Sea
                         </h3>
-                        <Button
-                          variant="outline"
-                          className="self-start text-xs border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-4 py-1"
-                        >
-                          Read More →
-                        </Button>
+                        <div className="flex flex-col mt-1 space-y-1">
+                          <Button
+                            variant="outline"
+                            className="self-start text-xs border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-3 py-1"
+                            onClick={() => navigate("/posts_details")}
+                          >
+                            Read More →
+                          </Button>
+                          <div className="text-blue-600 font-semibold text-xs sm:text-sm line-clamp-1">
+                            <h3>Career Event, Tree Paine, Music Industry Drama</h3>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -287,32 +314,34 @@ export default function Timeline() {
 
                 <div className="relative py-44">
                   <div className="relative">
-                    <img
-                      src="/images/rightSide_Rectangle.png"
-                      alt="Right Rectangle"
-                      className="w-full h-auto"
-                    />
-                    <div className="absolute inset-0 py-8 px-20">
-                      <div className="bg-white rounded-lg px-3 py-1 text-xs text-[#8a9ad4] font-medium inline-block mb-2">
+                    <img src="/images/rightSide_Rectangle.png" alt="Right Rectangle" className="w-full h-auto" />
+                    <div className="absolute inset-0 p-2 sm:p-4 md:p-6 lg:p-8 flex flex-col overflow-hidden mt-4 transform translate-x-12">
+                      <div className="bg-white rounded-full px-2 py-1 text-xs sm:text-sm md:text-base text-[#8a9ad4] font-semibold inline-block mb-1 sm:mb-2 w-fit">
                         2024
                       </div>
-                      <div className="flex flex-col gap-2">
-                        <div className="w-full md:w-[520px] h-[260px] relative rounded-lg overflow-hidden">
+                      <div className="flex flex-col gap-1 flex-grow overflow-hidden">
+                        <div className="w-full h-0 pb-[35%] relative rounded-lg overflow-hidden">
                           <img
                             src="/images/taylor_timeline_default.jpeg"
                             alt="Taylor Swift"
-                            className="absolute inset-0 w-full h-full object-cover object-[center_35%]"
+                            className="absolute inset-0 w-[90%] h-full object-cover object-[center_35%]"
                           />
                         </div>
-                        <h3 className="text-[#8e3e3e] font-medium text-sm">
+                        <h3 className="text-[#8e3e3e] font-medium text-xs sm:text-sm line-clamp-2 mt-1">
                           Taylor and Travis Kelce vacation in Carmel-by-the-Sea
                         </h3>
-                        <Button
-                          variant="outline"
-                          className="self-start text-xs border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-4 py-1"
-                        >
-                          Read More →
-                        </Button>
+                        <div className="flex flex-col mt-1 space-y-1">
+                          <Button
+                            variant="outline"
+                            className="self-start text-xs border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-3 py-1"
+                            onClick={() => navigate("/posts_details")}
+                          >
+                            Read More →
+                          </Button>
+                          <div className="text-blue-600 font-semibold text-xs sm:text-sm line-clamp-1">
+                            <h3>Career Event, Tree Paine, Music Industry Drama</h3>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -320,32 +349,34 @@ export default function Timeline() {
 
                 <div className="relative py-16">
                   <div className="relative">
-                    <img
-                      src="/images/rightSide_Rectangle.png"
-                      alt="Right Rectangle"
-                      className="w-full h-auto"
-                    />
-                    <div className="absolute inset-0 py-8 px-20">
-                      <div className="bg-white rounded-lg px-3 py-1 text-xs text-[#8a9ad4] font-medium inline-block mb-2">
+                    <img src="/images/rightSide_Rectangle.png" alt="Right Rectangle" className="w-full h-auto" />
+                    <div className="absolute inset-0 p-2 sm:p-4 md:p-6 lg:p-8 flex flex-col overflow-hidden mt-4 transform translate-x-12">
+                      <div className="bg-white rounded-full px-2 py-1 text-xs sm:text-sm md:text-base text-[#8a9ad4] font-semibold inline-block mb-1 sm:mb-2 w-fit">
                         2024
                       </div>
-                      <div className="flex flex-col gap-2">
-                        <div className="w-full md:w-[520px] h-[260px] relative rounded-lg overflow-hidden">
+                      <div className="flex flex-col gap-1 flex-grow overflow-hidden">
+                        <div className="w-full h-0 pb-[35%] relative rounded-lg overflow-hidden">
                           <img
                             src="/images/taylor_timeline_default.jpeg"
                             alt="Taylor Swift"
-                            className="absolute inset-0 w-full h-full object-cover object-[center_35%]"
+                            className="absolute inset-0 w-[90%] h-full object-cover object-[center_35%]"
                           />
                         </div>
-                        <h3 className="text-[#8e3e3e] font-medium text-sm">
+                        <h3 className="text-[#8e3e3e] font-medium text-xs sm:text-sm line-clamp-2 mt-1">
                           Taylor and Travis Kelce vacation in Carmel-by-the-Sea
                         </h3>
-                        <Button
-                          variant="outline"
-                          className="self-start text-xs border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-4 py-1"
-                        >
-                          Read More →
-                        </Button>
+                        <div className="flex flex-col mt-1 space-y-1">
+                          <Button
+                            variant="outline"
+                            className="self-start text-xs border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-3 py-1"
+                            onClick={() => navigate("/posts_details")}
+                          >
+                            Read More →
+                          </Button>
+                          <div className="text-blue-600 font-semibold text-xs sm:text-sm line-clamp-1">
+                            <h3>Career Event, Tree Paine, Music Industry Drama</h3>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -369,5 +400,5 @@ export default function Timeline() {
         </div>
       </div>
     </section>
-  );
+  )
 }
