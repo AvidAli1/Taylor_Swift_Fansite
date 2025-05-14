@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react"
 import axios from "axios"
+import { useNavigate } from 'react-router-dom';
 
 export default function TimelineBody() {
+  const navigate = useNavigate();
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -22,6 +24,11 @@ export default function TimelineBody() {
   // Store pagination history for moving back and forth
   const [offsetHistory, setOffsetHistory] = useState([null])
   const [currentOffsetIndex, setCurrentOffsetIndex] = useState(0)
+
+  // Navigate to post details page
+  const handleReadMore = (postId) => {
+    navigate(`/post_details?id=${postId}`);
+  };
 
   // Load posts from Airtable API
   useEffect(() => {
@@ -177,6 +184,7 @@ export default function TimelineBody() {
   }
 
   return (
+
     <div className="bg-[#e6edf7] py-8">
       
       {/* Ad Placement */}
@@ -339,7 +347,10 @@ export default function TimelineBody() {
                     {/* Spacer pushes button to the bottom */}
                     <div className="flex-grow" />
 
-                    <button className="w-full bg-[#fff5f5] text-[#b91c1c] border border-[#ffcaca] rounded-full py-1.5 px-4 text-sm font-medium flex items-center justify-center mt-auto">
+                    <button 
+                      className="w-full bg-[#fff5f5] text-[#b91c1c] border border-[#ffcaca] rounded-full py-1.5 px-4 text-sm font-medium flex items-center justify-center mt-auto"
+                      onClick={() => handleReadMore(post.id)}
+                    >
                       Read More
                       <span className="ml-1">→</span>
                     </button>

@@ -32,6 +32,11 @@ export default function Timeline() {
     setCurrentDay(currentDate.getDate());
   };
 
+  // Add handleReadMore function to match functionality in timeline-body.jsx
+  const handleReadMore = (postId) => {
+    navigate(`/post_details?id=${postId}`);
+  };
+
   // Fetch records from Airtable API
   useEffect(() => {
     const fetchRecordsByDate = async (month, day) => {
@@ -198,7 +203,7 @@ export default function Timeline() {
                         <Button
                           variant="outline"
                           className="self-start text-xs border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-4 py-1"
-                          onClick={() => navigate("/posts_details")}
+                          onClick={() => handleReadMore(record.id)}
                         >
                           Read More →
                         </Button>
@@ -260,7 +265,7 @@ export default function Timeline() {
                           <Button
                             variant="outline"
                             className="self-start text-xs border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-3 py-1"
-                            onClick={() => navigate("/posts_details")}
+                            onClick={() => records[1] && handleReadMore(records[1].id)}
                           >
                             Read More →
                           </Button>
@@ -297,7 +302,7 @@ export default function Timeline() {
                           <Button
                             variant="outline"
                             className="self-start text-xs border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-3 py-1"
-                            onClick={() => navigate("/posts_details")}
+                            onClick={() => records[3] && handleReadMore(records[3].id)}
                           >
                             Read More →
                           </Button>
@@ -334,7 +339,7 @@ export default function Timeline() {
                           <Button
                             variant="outline"
                             className="self-start text-xs border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-3 py-1"
-                            onClick={() => navigate("/posts_details")}
+                            onClick={() => records[5] && handleReadMore(records[5].id)}
                           >
                             Read More →
                           </Button>
@@ -374,7 +379,7 @@ export default function Timeline() {
                           <Button
                             variant="outline"
                             className="self-start text-xs border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-3 py-1"
-                            onClick={() => navigate("/posts_details")}
+                            onClick={() => records[0] && handleReadMore(records[0].id)}
                           >
                             Read More →
                           </Button>
@@ -411,7 +416,7 @@ export default function Timeline() {
                           <Button
                             variant="outline"
                             className="self-start text-xs border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-3 py-1"
-                            onClick={() => navigate("/posts_details")}
+                            onClick={() => records[2] && handleReadMore(records[2].id)}
                           >
                             Read More →
                           </Button>
@@ -448,7 +453,7 @@ export default function Timeline() {
                           <Button
                             variant="outline"
                             className="self-start text-xs border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-3 py-1"
-                            onClick={() => navigate("/posts_details")}
+                            onClick={() => records[4] && handleReadMore(records[4].id)}
                           >
                             Read More →
                           </Button>
