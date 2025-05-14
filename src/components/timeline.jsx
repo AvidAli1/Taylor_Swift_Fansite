@@ -4,12 +4,68 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "./ui/Button"
 import { useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
+import axios from "axios"
 
 import "./timeline.css"
 
 export default function Timeline() {
   const navigate = useNavigate()
   const [showScrollHint, setShowScrollHint] = useState(true)
+
+  const [records, setRecords] = useState([]);
+  
+  // for next and previous day buttons
+  const [currentMonth, setCurrentMonth] = useState(5);
+  const [currentDay, setCurrentDay] = useState(31);
+  
+  const handleNextDay = () => {
+    const currentDate = new Date(2020, currentMonth - 1, currentDay); // Dummy year
+    currentDate.setDate(currentDate.getDate() + 1);
+    setCurrentMonth(currentDate.getMonth() + 1); // Months are 0-based
+    setCurrentDay(currentDate.getDate());
+  };
+
+  const handlePreviousDay = () => {
+    const currentDate = new Date(2020, currentMonth - 1, currentDay); // Dummy year
+    currentDate.setDate(currentDate.getDate() - 1);
+    setCurrentMonth(currentDate.getMonth() + 1);
+    setCurrentDay(currentDate.getDate());
+  };
+
+  // Fetch records from Airtable API
+  useEffect(() => {
+    const fetchRecordsByDate = async (month, day) => {
+      const fetchByDate = async () => {
+        const response = await axios.get(
+          "https://api.airtable.com/v0/appVhtDyx0VKlGbhy/Taylor%20Swift%20Master%20Tracker",
+          {
+            headers: {
+              Authorization: `Bearer ${import.meta.env.VITE_AIRTABLE_API_KEY}`,
+            },
+            params: {
+              maxRecords: 6, // You can increase this if you need more than 6 records
+              filterByFormula: `AND(MONTH(DATE) = ${month}, DAY(DATE) = ${day})`,
+              sort: [{ field: "DATE", direction: "asc" }],
+            },
+          }
+        );
+        return response.data.records || [];
+      };
+
+      try {
+        const fetched = await fetchByDate();
+        setRecords(fetched); // ✅ Store in state
+        console.log("Fetched records:", fetched);
+      } catch (error) {
+        console.error("Error fetching records:", error);
+      }
+    };
+
+    // Fetch records for April 20th (Month = 4, Day = 20)
+    if(currentMonth && currentDay) {
+    fetchRecordsByDate(currentMonth, currentDay);
+    }
+  }, [currentMonth, currentDay]);
 
   // Handle scroll event to hide the scroll hint
   useEffect(() => {
@@ -67,6 +123,7 @@ export default function Timeline() {
             <Button
               variant="secondary"
               className="rounded-full px-2 sm:px-4 md:px-6 text-xs sm:text-sm flex items-center gap-1 md:gap-2 mr-3"
+              onClick={handlePreviousDay}
             >
               <ChevronLeft size={12} className="md:size-16" />
               <span className="hidden sm:inline">Previous Day</span>
@@ -74,12 +131,20 @@ export default function Timeline() {
             </Button>
 
             <div className="bg-white rounded-full px-4 sm:px-6 md:px-8 py-1 md:py-2 min-w-[120px] sm:min-w-[160px] md:min-w-[200px] border border-[#b66b6b]">
-              <span className="text-[#8e3e3e] text-sm md:text-base font-medium">APRIL 20</span>
+              <span className="text-[#8e3e3e] text-sm md:text-base font-medium">
+                {records.length > 0 && records[0].fields?.DATE? 
+                  new Date(records[0].fields.DATE).toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                    })
+                  : "Loading..."}
+              </span>
             </div>
 
             <Button
               variant="secondary"
               className="rounded-full px-2 sm:px-4 md:px-6 text-xs sm:text-sm flex items-center gap-1 md:gap-2 ml-3"
+              onClick={handleNextDay}
             >
               <span className="hidden sm:inline">Next Day</span>
               <span className="sm:hidden ml-2">Next</span>
@@ -111,22 +176,24 @@ export default function Timeline() {
 
               {/* Mobile Timeline Items - All on right side */}
               <div className="absolute left-[20px] w-[calc(100%-30px)] space-y-[50px] pb-4">
-                {[1, 2, 3, 4, 5, 6].map((item, index) => (
+                {records.map((record, index) => (
                   <div key={index} className="relative mt-[50px]" style={{ marginTop: index === 0 ? "20px" : "" }}>
                     <div className="bg-[#fce0e0] rounded-[10px] shadow-md p-4">
                       <div className="bg-[#fce0e0] rounded-lg px-2 py-1 text-xs text-[#8a9ad4] font-medium inline-block mb-2">
-                        2024
+                        {record?.fields?.DATE
+                          ? new Date(record.fields.DATE).getFullYear()
+                          : "Loading..."}
                       </div>
                       <div className="flex flex-col gap-2">
                         <div className="w-full h-[160px] relative rounded-lg overflow-hidden">
                           <img
-                            src="/images/taylor_timeline_default.jpeg"
+                            src={record?.fields?.IMAGE?.[0]?.url || '/images/taylor_timeline_default.jpeg'}
                             alt="Taylor Swift"
                             className="absolute inset-0 w-full h-full object-cover object-[center_35%]"
                           />
                         </div>
                         <h3 className="text-[#8e3e3e] font-medium text-sm">
-                          Taylor and Travis Kelce vacation in Carmel-by-the-Sea
+                          {record?.fields?.EVENT || 'Event description unavailable'}
                         </h3>
                         <Button
                           variant="outline"
@@ -174,18 +241,20 @@ export default function Timeline() {
                     <img src="/images/leftSide_rectangle.png" alt="Left Rectangle" className="w-full h-auto" />
                     <div className="absolute inset-0 p-2 sm:p-4 md:p-6 lg:p-8 flex flex-col overflow-hidden mt-4">
                       <div className="bg-white rounded-full px-2 py-1 text-xs sm:text-sm md:text-base text-[#8a9ad4] font-semibold inline-block mb-1 sm:mb-2 w-fit">
-                        2024
+                        {records[1] && records[1].fields && records[1]?.fields?.DATE
+                          ? new Date(records[1].fields.DATE).getFullYear()
+                          : "Loading..."}
                       </div>
                       <div className="flex flex-col gap-1 flex-grow overflow-hidden">
                         <div className="w-full h-0 pb-[35%] relative rounded-lg overflow-hidden">
                           <img
-                            src="/images/taylor_timeline_default.jpeg"
+                            src={records[1]?.fields?.IMAGE?.[0]?.url || '/images/taylor_timeline_default.jpeg'}
                             alt="Taylor Swift"
                             className="absolute inset-0 w-[90%] h-full object-cover object-[center_35%]"
                           />
                         </div>
                         <h3 className="text-[#8e3e3e] font-medium text-xs sm:text-sm line-clamp-2 mt-1">
-                          Taylor and Travis Kelce vacation in Carmel-by-the-Sea
+                          {records[1]?.fields?.EVENT || 'Event description unavailable'}
                         </h3>
                         <div className="flex flex-col mt-1 space-y-1">
                           <Button
@@ -196,7 +265,7 @@ export default function Timeline() {
                             Read More →
                           </Button>
                           <div className="text-blue-600 font-semibold text-xs sm:text-sm line-clamp-1">
-                            <h3>Career Event, Tree Paine, Music Industry Drama</h3>
+                            {records[1]?.fields?.KEYWORDS?.join(", ")}
                           </div>
                         </div>
                       </div>
@@ -209,18 +278,20 @@ export default function Timeline() {
                     <img src="/images/leftSide_rectangle.png" alt="Left Rectangle" className="w-full h-auto" />
                     <div className="absolute inset-0 p-2 sm:p-4 md:p-6 lg:p-8 flex flex-col overflow-hidden mt-4">
                       <div className="bg-white rounded-full px-2 py-1 text-xs sm:text-sm md:text-base text-[#8a9ad4] font-semibold inline-block mb-1 sm:mb-2 w-fit">
-                        2024
+                        {records[3] && records[3].fields && records[3].fields?.DATE
+                         ? new Date(records[3]?.fields?.DATE).getFullYear()
+                         : "Loading..."}
                       </div>
                       <div className="flex flex-col gap-1 flex-grow overflow-hidden">
                         <div className="w-full h-0 pb-[35%] relative rounded-lg overflow-hidden">
                           <img
-                            src="/images/taylor_timeline_default.jpeg"
+                            src={records[3]?.fields?.IMAGE?.[0]?.url || '/images/taylor_timeline_default.jpeg'}
                             alt="Taylor Swift"
                             className="absolute inset-0 w-[90%] h-full object-cover object-[center_35%]"
                           />
                         </div>
                         <h3 className="text-[#8e3e3e] font-medium text-xs sm:text-sm line-clamp-2 mt-1">
-                          Taylor and Travis Kelce vacation in Carmel-by-the-Sea
+                          {records[3]?.fields?.EVENT || 'Event description unavailable'}
                         </h3>
                         <div className="flex flex-col mt-1 space-y-1">
                           <Button
@@ -231,7 +302,7 @@ export default function Timeline() {
                             Read More →
                           </Button>
                           <div className="text-blue-600 font-semibold text-xs sm:text-sm line-clamp-1">
-                            <h3>Career Event, Tree Paine, Music Industry Drama</h3>
+                            {records[3]?.fields?.KEYWORDS?.join(", ")}
                           </div>
                         </div>
                       </div>
@@ -244,18 +315,20 @@ export default function Timeline() {
                     <img src="/images/leftSide_rectangle.png" alt="Left Rectangle" className="w-full h-auto" />
                     <div className="absolute inset-0 p-2 sm:p-4 md:p-6 lg:p-8 flex flex-col overflow-hidden mt-4">
                       <div className="bg-white rounded-full px-2 py-1 text-xs sm:text-sm md:text-base text-[#8a9ad4] font-semibold inline-block mb-1 sm:mb-2 w-fit">
-                        2024
+                       {records[5] && records[5].fields && records[5].fields?.DATE
+                         ? new Date(records[5]?.fields?.DATE).getFullYear()
+                         : "Loading..."}
                       </div>
                       <div className="flex flex-col gap-1 flex-grow overflow-hidden">
                         <div className="w-full h-0 pb-[35%] relative rounded-lg overflow-hidden">
                           <img
-                            src="/images/taylor_timeline_default.jpeg"
+                            src={records[5]?.fields?.IMAGE?.[0]?.url || '/images/taylor_timeline_default.jpeg'}
                             alt="Taylor Swift"
                             className="absolute inset-0 w-[90%] h-full object-cover object-[center_35%]"
                           />
                         </div>
                         <h3 className="text-[#8e3e3e] font-medium text-xs sm:text-sm line-clamp-2 mt-1">
-                          Taylor and Travis Kelce vacation in Carmel-by-the-Sea
+                          {records[5]?.fields?.EVENT || 'Event description unavailable'}
                         </h3>
                         <div className="flex flex-col mt-1 space-y-1">
                           <Button
@@ -266,7 +339,7 @@ export default function Timeline() {
                             Read More →
                           </Button>
                           <div className="text-blue-600 font-semibold text-xs sm:text-sm line-clamp-1">
-                            <h3>Career Event, Tree Paine, Music Industry Drama</h3>
+                            {records[5]?.fields?.KEYWORDS?.join(", ")}
                           </div>
                         </div>
                       </div>
@@ -282,18 +355,20 @@ export default function Timeline() {
                     <img src="/images/rightSide_Rectangle.png" alt="Right Rectangle" className="w-full h-auto" />
                     <div className="absolute inset-0 p-2 sm:p-4 md:p-6 lg:p-8 flex flex-col overflow-hidden mt-4 transform translate-x-12">
                       <div className="bg-white rounded-full px-2 py-1 text-xs sm:text-sm md:text-base text-[#8a9ad4] font-semibold inline-block mb-1 sm:mb-2 w-fit">
-                        2024
+                        {records[0] && records[0].fields && records[0].fields?.DATE
+                         ? new Date(records[0]?.fields?.DATE).getFullYear()
+                         : "Loading..."}
                       </div>
                       <div className="flex flex-col gap-1 flex-grow overflow-hidden">
                         <div className="w-full h-0 pb-[35%] relative rounded-lg overflow-hidden">
                           <img
-                            src="/images/taylor_timeline_default.jpeg"
+                            src={records[0]?.fields?.IMAGE?.[0]?.url || '/images/taylor_timeline_default.jpeg'}
                             alt="Taylor Swift"
                             className="absolute inset-0 w-[90%] h-full object-cover object-[center_35%]"
                           />
                         </div>
                         <h3 className="text-[#8e3e3e] font-medium text-xs sm:text-sm line-clamp-2 mt-1">
-                          Taylor and Travis Kelce vacation in Carmel-by-the-Sea
+                          {records[0]?.fields?.EVENT || 'Event description unavailable'}
                         </h3>
                         <div className="flex flex-col mt-1 space-y-1">
                           <Button
@@ -304,7 +379,7 @@ export default function Timeline() {
                             Read More →
                           </Button>
                           <div className="text-blue-600 font-semibold text-xs sm:text-sm line-clamp-1">
-                            <h3>Career Event, Tree Paine, Music Industry Drama</h3>
+                            {records[0]?.fields?.KEYWORDS?.join(", ")}
                           </div>
                         </div>
                       </div>
@@ -317,18 +392,20 @@ export default function Timeline() {
                     <img src="/images/rightSide_Rectangle.png" alt="Right Rectangle" className="w-full h-auto" />
                     <div className="absolute inset-0 p-2 sm:p-4 md:p-6 lg:p-8 flex flex-col overflow-hidden mt-4 transform translate-x-12">
                       <div className="bg-white rounded-full px-2 py-1 text-xs sm:text-sm md:text-base text-[#8a9ad4] font-semibold inline-block mb-1 sm:mb-2 w-fit">
-                        2024
+                        {records[2] && records[2].fields && records[2].fields?.DATE
+                         ? new Date(records[2]?.fields?.DATE).getFullYear()
+                         : "Loading..."}
                       </div>
                       <div className="flex flex-col gap-1 flex-grow overflow-hidden">
                         <div className="w-full h-0 pb-[35%] relative rounded-lg overflow-hidden">
                           <img
-                            src="/images/taylor_timeline_default.jpeg"
+                            src={records[2]?.fields?.IMAGE?.[0]?.url || '/images/taylor_timeline_default.jpeg'}
                             alt="Taylor Swift"
                             className="absolute inset-0 w-[90%] h-full object-cover object-[center_35%]"
                           />
                         </div>
                         <h3 className="text-[#8e3e3e] font-medium text-xs sm:text-sm line-clamp-2 mt-1">
-                          Taylor and Travis Kelce vacation in Carmel-by-the-Sea
+                          {records[2]?.fields?.EVENT || 'Event description unavailable'}
                         </h3>
                         <div className="flex flex-col mt-1 space-y-1">
                           <Button
@@ -339,7 +416,7 @@ export default function Timeline() {
                             Read More →
                           </Button>
                           <div className="text-blue-600 font-semibold text-xs sm:text-sm line-clamp-1">
-                            <h3>Career Event, Tree Paine, Music Industry Drama</h3>
+                            {records[2]?.fields?.KEYWORDS?.join(", ")}
                           </div>
                         </div>
                       </div>
@@ -352,18 +429,20 @@ export default function Timeline() {
                     <img src="/images/rightSide_Rectangle.png" alt="Right Rectangle" className="w-full h-auto" />
                     <div className="absolute inset-0 p-2 sm:p-4 md:p-6 lg:p-8 flex flex-col overflow-hidden mt-4 transform translate-x-12">
                       <div className="bg-white rounded-full px-2 py-1 text-xs sm:text-sm md:text-base text-[#8a9ad4] font-semibold inline-block mb-1 sm:mb-2 w-fit">
-                        2024
+                        {records[4] && records[4].fields && records[4].fields?.DATE
+                         ? new Date(records[4]?.fields?.DATE).getFullYear()
+                         : "Loading..."}
                       </div>
                       <div className="flex flex-col gap-1 flex-grow overflow-hidden">
                         <div className="w-full h-0 pb-[35%] relative rounded-lg overflow-hidden">
                           <img
-                            src="/images/taylor_timeline_default.jpeg"
+                            src={records[4]?.fields?.IMAGE?.[0]?.url || '/images/taylor_timeline_default.jpeg'}
                             alt="Taylor Swift"
                             className="absolute inset-0 w-[90%] h-full object-cover object-[center_35%]"
                           />
                         </div>
                         <h3 className="text-[#8e3e3e] font-medium text-xs sm:text-sm line-clamp-2 mt-1">
-                          Taylor and Travis Kelce vacation in Carmel-by-the-Sea
+                          {records[4]?.fields?.EVENT || 'Event description unavailable'}
                         </h3>
                         <div className="flex flex-col mt-1 space-y-1">
                           <Button
@@ -374,7 +453,7 @@ export default function Timeline() {
                             Read More →
                           </Button>
                           <div className="text-blue-600 font-semibold text-xs sm:text-sm line-clamp-1">
-                            <h3>Career Event, Tree Paine, Music Industry Drama</h3>
+                            {records[4]?.fields?.KEYWORDS?.join(", ")}
                           </div>
                         </div>
                       </div>
