@@ -2,44 +2,99 @@
 
 import { useState, useEffect } from "react"
 import axios from "axios"
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function TimelineBody() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
-  const [offset, setOffset] = useState(null) // Track API pagination offset
+  const [offset, setOffset] = useState(null)
   const recordsPerPage = 12
   
   // Filter states
-  const [sortOrder, setSortOrder] = useState("asc") // Default to oldest first
-  const [filterKeyword, setFilterKeyword] = useState("")
-  const [startDate, setStartDate] = useState(null)
-  const [endDate, setEndDate] = useState(null)
-  const [monthDay, setMonthDay] = useState(null)
-  const [searchTerm, setSearchTerm] = useState("")
+  const [sortOrder, setSortOrder] = useState("asc")
+  const [filterKeywords, setFilterKeywords] = useState([]) // Changed to array
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
+  const [monthDay, setMonthDay] = useState("")
+  const [searchQuery, setSearchQuery] = useState("")
   
-  // Store pagination history for moving back and forth
+  // Available keywords for dropdown
+  const [allKeywords, setAllKeywords] = useState([])
+  const [showKeywordDropdown, setShowKeywordDropdown] = useState(false)
+  
+  // Store pagination history
   const [offsetHistory, setOffsetHistory] = useState([null])
   const [currentOffsetIndex, setCurrentOffsetIndex] = useState(0)
 
-  // Navigate to post details page
+  // Get search query from URL params
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search)
+    const queryFromUrl = urlParams.get('q')
+    if (queryFromUrl) {
+      setSearchQuery(queryFromUrl)
+    }
+  }, [location.search])
+
   const handleReadMore = (postId) => {
     navigate(`/post_details?id=${postId}`);
   };
 
-  // Load posts from Airtable API
+  // New function to handle tag clicks
+  const handleTagClick = (keyword) => {
+    if (!filterKeywords.includes(keyword)) {
+      setFilterKeywords([...filterKeywords, keyword]);
+    }
+    resetPagination();
+  };
+
+  // Fetch all keywords for dropdown
+  const fetchAllKeywords = async () => {
+    try {
+      const response = await axios.get(
+        "https://api.airtable.com/v0/appVhtDyx0VKlGbhy/Taylor%20Swift%20Master%20Tracker",
+        {
+          headers: {
+            Authorization: `Bearer ${import.meta.env.VITE_AIRTABLE_API_KEY}`,
+          },
+          params: {
+            maxRecords: 1000,
+            fields: ['KEYWORDS'],
+            view: "Grid view",
+          },
+        }
+      )
+      
+      const keywordSet = new Set()
+      response.data.records.forEach(record => {
+        if (record.fields.KEYWORDS) {
+          record.fields.KEYWORDS.forEach(keyword => {
+            keywordSet.add(keyword)
+          })
+        }
+      })
+      
+      setAllKeywords(Array.from(keywordSet).sort())
+    } catch (error) {
+      console.error("Error fetching keywords:", error)
+    }
+  }
+
+  // Fetch keywords on component mount
+  useEffect(() => {
+    fetchAllKeywords()
+  }, [])
+
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true)
       
       try {
-        // Build filter formula based on selected filters
         let filterFormula = ""
         
-        // Add date range filters if set
         if (startDate && endDate) {
           filterFormula += `AND(IS_AFTER({DATE}, '${startDate}'), IS_BEFORE({DATE}, '${endDate}'))`
         } else if (startDate) {
@@ -48,7 +103,6 @@ export default function TimelineBody() {
           filterFormula += `IS_BEFORE({DATE}, '${endDate}')`
         }
         
-        // Add month/day filter if set
         if (monthDay) {
           const [month, day] = monthDay.split('/')
           if (filterFormula) {
@@ -58,22 +112,23 @@ export default function TimelineBody() {
           }
         }
         
-        // Add keyword filter if set
-        if (filterKeyword) {
-          const keywordFilter = `FIND('${filterKeyword}', LOWER({KEYWORDS}))`
+        // Modified keyword filter to handle multiple keywords
+        if (filterKeywords.length > 0) {
+          const keywordFilters = filterKeywords.map(
+            keyword => `FIND(LOWER('${keyword}'), LOWER({KEYWORDS})) > 0`
+          ).join(',')
+          const keywordFilter = `OR(${keywordFilters})`
           filterFormula = filterFormula ? `AND(${filterFormula}, ${keywordFilter})` : keywordFilter
         }
         
-        // Add search term filter if set
-        if (searchTerm) {
-          const searchFilter = `OR(FIND('${searchTerm.toLowerCase()}', LOWER({EVENT})), FIND('${searchTerm.toLowerCase()}', LOWER({LOCATION})))`
+        // Updated search functionality
+        if (searchQuery.trim()) {
+          const searchFilter = `SEARCH("${searchQuery}", {EVENT})`
           filterFormula = filterFormula ? `AND(${filterFormula}, ${searchFilter})` : searchFilter
         }
         
-        // Use the current offset from history when navigating
         const currentOffset = offsetHistory[currentOffsetIndex]
         
-        // API request with proper pagination
         const response = await axios.get(
           "https://api.airtable.com/v0/appVhtDyx0VKlGbhy/Taylor%20Swift%20Master%20Tracker",
           {
@@ -81,9 +136,9 @@ export default function TimelineBody() {
               Authorization: `Bearer ${import.meta.env.VITE_AIRTABLE_API_KEY}`,
             },
             params: {
-              maxRecords: 100, // Higher max to ensure we get enough records
+              maxRecords: 100,
               pageSize: recordsPerPage,
-              offset: currentOffset, // Use offset for pagination
+              offset: currentOffset,
               filterByFormula: filterFormula || undefined,
               sort: [{ field: "DATE", direction: sortOrder }],
               view: "Grid view",
@@ -91,19 +146,15 @@ export default function TimelineBody() {
           }
         )
         
-        // Check if there are more records by checking for offset in response
         const hasMoreRecords = !!response.data.offset
         setHasMore(hasMoreRecords)
         
-        // Save the new offset for next page if available
         if (hasMoreRecords) {
-          // If we're not at the end of the history yet, don't update it
           if (currentOffsetIndex === offsetHistory.length - 1) {
             setOffsetHistory(prev => [...prev, response.data.offset])
           }
         }
 
-        // Format posts data
         const formattedPosts = response.data.records.map(record => ({
           id: record.id,
           date: record.fields.DATE ? new Date(record.fields.DATE).toLocaleDateString('en-US', {
@@ -114,12 +165,11 @@ export default function TimelineBody() {
           category: record.fields.CATEGORY || 'Uncategorized',
           title: record.fields.EVENT || 'Untitled Event',
           location: record.fields.LOCATION || 'Location unknown',
-          image: record.fields.IMAGE?.[0]?.url || "/images/taylor_timeline_default.jpeg",
+          image: record.fields.IMAGE?.[0]?.url || null,
           year: record.fields.DATE ? new Date(record.fields.DATE).getFullYear() : '',
           keywords: record.fields.KEYWORDS || []
         }))
         
-        // Update posts state with new data
         setPosts(formattedPosts)
         
       } catch (error) {
@@ -130,7 +180,7 @@ export default function TimelineBody() {
     }
 
     fetchPosts()
-  }, [currentOffsetIndex, sortOrder, filterKeyword, startDate, endDate, monthDay, searchTerm])
+  }, [currentOffsetIndex, sortOrder, filterKeywords, startDate, endDate, monthDay, searchQuery])
 
   // Handle filter changes - reset pagination when filters change
   const handleSortChange = (order) => {
@@ -139,8 +189,11 @@ export default function TimelineBody() {
   }
 
   const handleKeywordFilter = (keyword) => {
-    setFilterKeyword(keyword)
-    resetPagination()
+    if (filterKeywords.includes(keyword)) {
+      setFilterKeywords(filterKeywords.filter(k => k !== keyword))
+    } else {
+      setFilterKeywords([...filterKeywords, keyword])
+    }
   }
 
   const handleDateRangeChange = (start, end) => {
@@ -154,9 +207,23 @@ export default function TimelineBody() {
     resetPagination()
   }
 
-  const handleSearch = (term) => {
-    setSearchTerm(term)
+  // Updated search handlers
+  const handleSearch = (e) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      navigate(`/?q=${encodeURIComponent(searchQuery.trim())}`)
+    }
     resetPagination()
+  }
+
+  const handleSearchInputChange = (e) => {
+    setSearchQuery(e.target.value)
+  }
+
+  const handleSearchKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch(e)
+    }
   }
 
   // Reset pagination when filters change
@@ -184,9 +251,7 @@ export default function TimelineBody() {
   }
 
   return (
-
     <div className="bg-[#e6edf7] py-8">
-      
       {/* Ad Placement */}
       <div className="max-w-4xl mx-auto py-8 bg-[#fef2f2] mb-6 text-center text-[#6b7280]">Ad Placement</div>
 
@@ -203,97 +268,100 @@ export default function TimelineBody() {
           </button>
         </div>
 
-        {/* Filter Key words */}
+        {/* Filter Keywords with Dropdown - Updated for multi-select */}
         <div className="relative">
           <button 
             className="flex items-center justify-between bg-white text-[#6b7db3] border border-[#6b7db3] rounded-full px-4 py-1.5 text-sm min-w-[150px]"
-            onClick={() => {
-              const keyword = prompt("Enter keyword to filter by:")
-              if (keyword) handleKeywordFilter(keyword)
-            }}
+            onClick={() => setShowKeywordDropdown(!showKeywordDropdown)}
           >
-            <span>{filterKeyword || "Filter Key words"}</span>
+            <span>{filterKeywords.length > 0 ? `${filterKeywords.length} selected` : "Filter Key words"}</span>
             <span className="ml-2">▼</span>
           </button>
+          
+          {showKeywordDropdown && (
+            <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-[#6b7db3] rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+              <div className="p-2">
+                <button
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-[#e6edf7] rounded"
+                  onClick={() => {
+                    setFilterKeywords([])
+                    setShowKeywordDropdown(false)
+                    resetPagination()
+                  }}
+                >
+                  Clear All Filters
+                </button>
+                {allKeywords.map((keyword, index) => (
+                  <div key={index} className="flex items-center px-3 py-2">
+                    <input
+                      type="checkbox"
+                      id={`keyword-${index}`}
+                      checked={filterKeywords.includes(keyword)}
+                      onChange={() => handleKeywordFilter(keyword)}
+                      className="mr-2"
+                    />
+                    <label htmlFor={`keyword-${index}`} className="text-sm cursor-pointer">
+                      {keyword}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Start Date */}
+        {/* Start Date - Input field */}
         <div className="relative">
-          <button 
-            className="flex items-center justify-between bg-white text-[#6b7db3] border border-[#6b7db3] rounded-full px-4 py-1.5 text-sm min-w-[120px]"
-            onClick={() => {
-              const date = prompt("Enter start date (YYYY-MM-DD):")
-              handleDateRangeChange(date, endDate)
+          <input
+            type="text"
+            placeholder="Start Date (YYYY-MM-DD)"
+            className="bg-white text-[#6b7db3] border border-[#6b7db3] rounded-full px-4 py-1.5 text-sm min-w-[150px]"
+            value={startDate}
+            onChange={(e) => {
+              setStartDate(e.target.value)
+              handleDateRangeChange(e.target.value, endDate)
             }}
-          >
-            <span>{startDate || "Start Date"}</span>
-            <svg
-              className="ml-2 w-4 h-4"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              >
-              <path d="M3 4a1 1 0 011-1h1V2h2v1h8V2h2v1h1a1 1 0 011 1v16a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm1 4v12h16V8H4zm2 2h2v2H6v-2zm4 0h2v2h-2v-2z" />
-            </svg>
-          </button>
+          />
         </div>
 
-        {/* End Date */}
+        {/* End Date - Input field */}
         <div className="relative">
-          <button 
-            className="flex items-center justify-between bg-white text-[#6b7db3] border border-[#6b7db3] rounded-full px-4 py-1.5 text-sm min-w-[120px]"
-            onClick={() => {
-              const date = prompt("Enter end date (YYYY-MM-DD):")
-              handleDateRangeChange(startDate, date)
+          <input
+            type="text"
+            placeholder="End Date (YYYY-MM-DD)"
+            className="bg-white text-[#6b7db3] border border-[#6b7db3] rounded-full px-4 py-1.5 text-sm min-w-[150px]"
+            value={endDate}
+            onChange={(e) => {
+              setEndDate(e.target.value)
+              handleDateRangeChange(startDate, e.target.value)
             }}
-          >
-            <span>{endDate || "End Date"}</span>
-            <svg
-              className="ml-2 w-4 h-4"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              >
-              <path d="M3 4a1 1 0 011-1h1V2h2v1h8V2h2v1h1a1 1 0 011 1v16a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm1 4v12h16V8H4zm2 2h2v2H6v-2zm4 0h2v2h-2v-2z" />
-            </svg>
-          </button>
+          />
         </div>
 
-        {/* Month/Day */}
+        {/* Month/Day - Input field */}
         <div className="relative">
-          <button 
-            className="flex items-center justify-between bg-white text-[#6b7db3] border border-[#6b7db3] rounded-full px-4 py-1.5 text-sm min-w-[120px]"
-            onClick={() => {
-              const md = prompt("Enter month/day (MM/DD):")
-              handleMonthDayChange(md)
+          <input
+            type="text"
+            placeholder="Month/Day (MM/DD)"
+            className="bg-white text-[#6b7db3] border border-[#6b7db3] rounded-full px-4 py-1.5 text-sm min-w-[150px]"
+            value={monthDay}
+            onChange={(e) => {
+              setMonthDay(e.target.value)
+              handleMonthDayChange(e.target.value)
             }}
-          >
-            <span>{monthDay || "Month/Day"}</span>
-            <svg
-              className="ml-2 w-4 h-4"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              >
-              <path d="M3 4a1 1 0 011-1h1V2h2v1h8V2h2v1h1a1 1 0 011 1v16a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm1 4v12h16V8H4zm2 2h2v2H6v-2zm4 0h2v2h-2v-2z" />
-            </svg>
-          </button>
+          />
         </div>
 
-        {/* Search */}
+        {/* Search - Updated */}
         <div className="relative flex-grow">
-          <div className="relative ml-2">
+          <form onSubmit={handleSearch} className="relative ml-2">
             <input
               type="text"
               placeholder="Search Any key words or title"
               className="w-full rounded-full py-1.5 pl-10 pr-4 text-sm bg-white border border-[#6b7db3] text-[#6b7db3]"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSearch(e.target.value)
-                }
-              }}
+              value={searchQuery}
+              onChange={handleSearchInputChange}
+              onKeyPress={handleSearchKeyPress}
             />
             <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
             <svg
@@ -305,9 +373,44 @@ export default function TimelineBody() {
               <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12A6 6 0 0110 4z" />
             </svg>
             </div>
-          </div>
+          </form>
         </div>
+
+        {/* Clear filter button when tags are selected */}
+        {filterKeywords.length > 0 && (
+          <div className="relative">
+            <button 
+              className="flex items-center justify-between bg-[#b91c1c] text-white rounded-full px-4 py-1.5 text-sm"
+              onClick={() => {
+                setFilterKeywords([]);
+                resetPagination();
+              }}
+            >
+              Clear {filterKeywords.length} Filter{filterKeywords.length !== 1 ? 's' : ''}
+              <span className="ml-2">×</span>
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Selected keywords chips */}
+      {filterKeywords.length > 0 && (
+        <div className="max-w-6xl mx-auto px-4 mb-4 flex flex-wrap gap-2">
+          {filterKeywords.map((keyword, index) => (
+            <div 
+              key={index} 
+              className="bg-[#8a9ac7] text-white text-xs px-3 py-1 rounded-full flex items-center cursor-pointer hover:bg-[#6b7db3]"
+              onClick={() => {
+                setFilterKeywords(filterKeywords.filter(k => k !== keyword));
+                resetPagination();
+              }}
+            >
+              {keyword}
+              <span className="ml-1 text-xs">×</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Loading State */}
       {loading && (
@@ -326,34 +429,52 @@ export default function TimelineBody() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {posts.map((post) => (
-                <div key={post.id} className="bg-[#ffe8e8] rounded-xl overflow-hidden border border-[#ffcaca] flex flex-col">
-                  <div className="relative py-1">
-                    {/* Date label */}
+                <div key={post.id} className="bg-[#ffe8e8] rounded-xl overflow-hidden border border-[#ffcaca] flex flex-col hover:shadow-lg transition-shadow duration-200">
+                  <div className="relative pt-1">
                     <div className="absolute -top-0.1 left-5 bg-white text-[#b91c1c] text-xs font-medium px-2 py-1 rounded-full z-10">
                       {post.date}
                     </div>
 
-                    {/* Category label */}
-                    <div className="absolute -top-0.1 right-4 bg-white text-[#b91c1c] text-xs font-medium px-2 py-1 rounded-full z-10">
-                      {post.keywords.length > 0 ? post.keywords[0] : post.category}
-                    </div>
-
-                    <img src={post.image} alt={post.title} className="w-[90%] h-40 object-cover object-[center_35%] ml-4 mt-2 rounded-[3%]" />
+                    {/* Only render image if it exists */}
+                    {post.image && (
+                      <img 
+                        src={post.image} 
+                        alt={post.title} 
+                        className="w-[90%] h-40 object-cover object-[center_35%] mx-auto mt-2 rounded-[3%]" 
+                      />
+                    )}
                   </div>
 
-                  <div className="p-3 flex flex-col flex-grow">
-                    <h3 className="text-[#b91c1c] font-medium text-base mb-2">{post.title}</h3>
-
-                    {/* Spacer pushes button to the bottom */}
-                    <div className="flex-grow" />
+                  <div className="p-4 flex flex-col flex-grow mt-2">
+                    <h3 className="text-[#b91c1c] font-medium text-base mb-2 line-clamp-2">
+                      {post.title}
+                    </h3>
 
                     <button 
-                      className="w-full bg-[#fff5f5] text-[#b91c1c] border border-[#ffcaca] rounded-full py-1.5 px-4 text-sm font-medium flex items-center justify-center mt-auto"
+                      className="w-full bg-[#fff5f5] text-[#b91c1c] border border-[#ffcaca] rounded-full py-1.5 px-4 text-sm font-medium flex items-center justify-center hover:bg-[#ffcaca] transition-colors"
                       onClick={() => handleReadMore(post.id)}
                     >
                       Read More
                       <span className="ml-1">→</span>
                     </button>
+
+                    {/* Clickable tags */}
+                    <div className="mt-3">
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {post.keywords?.map((keyword, index) => (
+                          <span 
+                            key={index} 
+                            className="bg-[#8a9ac7] text-white text-[10px] px-1.5 py-0.5 rounded-full whitespace-nowrap cursor-pointer hover:bg-[#6b7db3] transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleTagClick(keyword);
+                            }}
+                          >
+                            {keyword}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -395,7 +516,12 @@ export default function TimelineBody() {
 
       {/* View On This Day Button */}
       <div className="max-w-6xl mx-auto px-4 mb-0">
-        <button className="w-full bg-[#c25e5e] text-white py-3 rounded-full font-medium">View On This Day</button>
+        <button 
+         className="w-full bg-[#c25e5e] text-white py-3 rounded-full font-medium"
+         onClick={() => navigate("/timeline")}
+        >
+         View On This Day
+        </button>
       </div>
       <br/>
     </div>

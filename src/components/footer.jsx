@@ -22,12 +22,24 @@ export default function Footer() {
 
       {/* Support Buttons */}
       <div className="bg-[#e8ecf7] py-6 flex justify-center gap-4">
-        <Button variant="secondary" className="rounded-full px-8">
-          Support Us
-        </Button>
-        <Button variant="secondary" className="rounded-full px-8">
-          Submit Suggestion
-        </Button>
+        <a
+          href="https://buymeacoffee.com/swiftlore"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Button variant="secondary" className="rounded-full px-8">
+            Support Us
+          </Button>
+        </a>
+        <a
+          href="https://docs.google.com/forms/d/e/1FAIpQLSc0f-asKuKOM81V3sPMusyvSkdcFr9XqrGVT0VgodPKKpkKPg/viewform?usp=header"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Button variant="secondary" className="rounded-full px-8">
+            Submit Suggestion
+          </Button>
+        </a>
       </div>
 
       {/* Copyright */}
