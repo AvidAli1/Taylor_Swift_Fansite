@@ -13,10 +13,14 @@ export default function Timeline() {
   const [showScrollHint, setShowScrollHint] = useState(true)
 
   const [records, setRecords] = useState([]);
+
+  const today = new Date();
+  const day = today.getDate();          
+  const month = today.getMonth() + 1;
   
   // for next and previous day buttons (4,5) (5,31) (9,9)
-  const [currentMonth, setCurrentMonth] = useState(4); // to set month
-  const [currentDay, setCurrentDay] = useState(5); // to set day
+  const [currentMonth, setCurrentMonth] = useState(month); // to set month
+  const [currentDay, setCurrentDay] = useState(day); // to set day
   
   const handleNextDay = () => {
     const currentDate = new Date(2020, currentMonth - 1, currentDay); // Dummy year
