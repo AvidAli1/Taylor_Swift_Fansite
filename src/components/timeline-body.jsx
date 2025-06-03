@@ -39,7 +39,7 @@ export default function TimelineBody() {
     }
   }, [location.search])
 
-  const handleReadMore = (postId) => {
+  const handleCardClick = (postId) => {
     navigate(`/post_details?id=${postId}`);
   };
 
@@ -88,6 +88,9 @@ export default function TimelineBody() {
     fetchAllKeywords()
   }, [])
 
+  // Helper function to escape quotes
+  const escapeQuotes = (str) => str.replace(/"/g, '\\"').replace(/'/g, "\\'");
+
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true)
@@ -112,19 +115,36 @@ export default function TimelineBody() {
           }
         }
         
-        // Modified keyword filter to handle multiple keywords
+        // Improved keyword filter (multi-select)
         if (filterKeywords.length > 0) {
-          const keywordFilters = filterKeywords.map(
-            keyword => `FIND(LOWER('${keyword}'), LOWER({KEYWORDS})) > 0`
-          ).join(',')
-          const keywordFilter = `OR(${keywordFilters})`
-          filterFormula = filterFormula ? `AND(${filterFormula}, ${keywordFilter})` : keywordFilter
+          const keywordFilters = filterKeywords.map(keyword => {
+            const escapedKeyword = escapeQuotes(keyword);
+            return `FIND(LOWER('${escapedKeyword.toLowerCase()}'), LOWER({KEYWORDS})) > 0`;
+          }).join(',');
+          filterFormula = filterFormula 
+            ? `AND(${filterFormula}, OR(${keywordFilters}))` 
+            : `OR(${keywordFilters})`;
         }
+      
         
-        // Updated search functionality
+        // Improved search functionality
         if (searchQuery.trim()) {
-          const searchFilter = `SEARCH("${searchQuery}", {EVENT})`
-          filterFormula = filterFormula ? `AND(${filterFormula}, ${searchFilter})` : searchFilter
+          const escapedQuery = escapeQuotes(searchQuery.trim());
+          const searchTerms = escapedQuery.split(/\s+/).filter(term => term.length > 0);
+          
+          const searchFilters = searchTerms.map(term => {
+            const lowerTerm = term.toLowerCase();
+            return `OR(
+              FIND('${lowerTerm}', LOWER({EVENT})) > 0,
+              FIND('${lowerTerm}', LOWER({LOCATION})) > 0,
+              FIND('${lowerTerm}', LOWER({CATEGORY})) > 0
+            )`;
+          }).join(',');
+
+          const searchFilter = `AND(${searchFilters})`;
+          filterFormula = filterFormula 
+            ? `AND(${filterFormula}, ${searchFilter})` 
+            : searchFilter;
         }
         
         const currentOffset = offsetHistory[currentOffsetIndex]
@@ -429,39 +449,41 @@ export default function TimelineBody() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {posts.map((post) => (
-                <div key={post.id} className="bg-[#ffe8e8] rounded-xl overflow-hidden border border-[#ffcaca] flex flex-col hover:shadow-lg transition-shadow duration-200">
-                  <div className="relative pt-1">
-                    <div className="absolute -top-0.1 left-5 bg-white text-[#b91c1c] text-xs font-medium px-2 py-1 rounded-full z-10">
+                <div 
+                  key={post.id} 
+                  className="bg-[#ffe8e8] rounded-xl overflow-hidden border border-[#ffcaca] flex flex-col hover:shadow-lg transition-shadow duration-200 cursor-pointer h-80"
+                  onClick={() => handleCardClick(post.id)}
+                >
+                  <div className="relative pt-1 h-48 flex flex-col">
+                    <div className="absolute -top-0.1 left-1/2 transform -translate-x-1/2 bg-white text-[#b91c1c] text-xs font-medium px-2 py-1 rounded-full z-10">
                       {post.date}
                     </div>
 
-                    {/* Only render image if it exists */}
-                    {post.image && (
-                      <img 
-                        src={post.image} 
-                        alt={post.title} 
-                        className="w-[90%] h-40 object-cover object-[center_35%] mx-auto mt-2 rounded-[3%]" 
-                      />
-                    )}
+                    {/* Image container with consistent size */}
+                    <div className="w-[90%] h-40 mx-auto mt-2 rounded-[3%] bg-gray-100 flex items-center justify-center">
+                      {post.image ? (
+                        <img 
+                          src={post.image} 
+                          alt={post.title} 
+                          className="w-full h-full object-cover object-[center_30%] rounded-[3%] " 
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-200 rounded-[3%] flex items-center justify-center">
+                          <span className="text-gray-400 text-sm">No Image</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="p-4 flex flex-col flex-grow mt-2">
-                    <h3 className="text-[#b91c1c] font-medium text-base mb-2 line-clamp-2">
+                  <div className="p-4 flex flex-col flex-grow">
+                    <h3 className="text-[#b91c1c] font-medium text-base mb-2 line-clamp-2 flex-grow">
                       {post.title}
                     </h3>
 
-                    <button 
-                      className="w-full bg-[#fff5f5] text-[#b91c1c] border border-[#ffcaca] rounded-full py-1.5 px-4 text-sm font-medium flex items-center justify-center hover:bg-[#ffcaca] transition-colors"
-                      onClick={() => handleReadMore(post.id)}
-                    >
-                      Read More
-                      <span className="ml-1">→</span>
-                    </button>
-
                     {/* Clickable tags */}
-                    <div className="mt-3">
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {post.keywords?.map((keyword, index) => (
+                    <div className="mt-auto">
+                      <div className="flex flex-wrap gap-2">
+                        {post.keywords?.slice(0, 3).map((keyword, index) => (
                           <span 
                             key={index} 
                             className="bg-[#8a9ac7] text-white text-[10px] px-1.5 py-0.5 rounded-full whitespace-nowrap cursor-pointer hover:bg-[#6b7db3] transition-colors"
@@ -473,6 +495,11 @@ export default function TimelineBody() {
                             {keyword}
                           </span>
                         ))}
+                        {post.keywords?.length > 3 && (
+                          <span className="bg-gray-300 text-gray-600 text-[10px] px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                            +{post.keywords.length - 3}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

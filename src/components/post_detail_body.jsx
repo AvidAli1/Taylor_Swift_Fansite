@@ -29,6 +29,13 @@ export default function PostDetailBody() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+    
+    // Also scroll to top when postId changes (in case of direct navigation)
+  }, [postId]);
+
+  useEffect(() => {
     // Fetch post data using the postId
     const fetchPostDetails = async () => {
       setLoading(true);
