@@ -60,9 +60,10 @@ export default function Header() {
         </div>
 
         {/* Content section */}
-        <div className="w-full md:w-2/5 flex flex-col items-center md:items-start gap-6 md:gap-6 md:mt-2 text-center md:text-left"> 
+        <div className="w-full md:w-2/5 flex flex-col items-center md:items-start gap-4 md:gap-6 md:mt-2 text-center md:text-left"> 
           <div className="w-72 md:w-full md:max-w-md">
-            <p className="text-white text-sm md:text-base leading-tight md:leading-relaxed mb-1 md:mb-2 text-left">
+            <p className="text-white text-sm md:text-base leading-tight md:leading-relaxed text-left 
+              -translate-y-6 md:translate-y-0">
               A fan-crafted, interactive timeline<br className="md:hidden" />
               chronicling the epic life and career of Taylor<br className="md:hidden" />
               Swift. Covering everything from albums,<br className="md:hidden" />
@@ -71,7 +72,7 @@ export default function Header() {
           </div>
 
           {/* Improved Search */}
-          <div className="w-72 md:w-full md:max-w-md">
+          <div className="w-72 md:w-full md:max-w-md -translate-y-4 md:translate-y-0">
             <form onSubmit={handleSearch} className="relative">
               <input
                 type="text"
@@ -128,7 +129,7 @@ export default function Header() {
           </div>
 
           <button
-            className="bg-[#b66b6b] text-white hover:bg-[#a55e5e] rounded-full px-4 md:px-7 py-2 md:py-3 font-semibold text-sm w-48 md:w-auto mb-2"
+            className="bg-[#b66b6b] text-white hover:bg-[#a55e5e] rounded-full px-4 md:px-7 py-2 md:py-3 font-semibold text-sm w-48 md:w-auto mb-2 -translate-y-2 md:translate-y-0"
             onClick={() => navigate("/posts")}
           >
             View Full Timeline
