@@ -13,7 +13,7 @@ export default function TimelineBody() {
   const [hasMore, setHasMore] = useState(true)
   const [offset, setOffset] = useState(null)
   const recordsPerPage = 12
-  
+
   // Filter states
   const [sortOrder, setSortOrder] = useState("asc")
   const [filterKeywords, setFilterKeywords] = useState([]) // Changed to array
@@ -21,11 +21,11 @@ export default function TimelineBody() {
   const [endDate, setEndDate] = useState("")
   const [monthDay, setMonthDay] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
-  
+
   // Available keywords for dropdown
   const [allKeywords, setAllKeywords] = useState([])
   const [showKeywordDropdown, setShowKeywordDropdown] = useState(false)
-  
+
   // Store pagination history
   const [offsetHistory, setOffsetHistory] = useState([null])
   const [currentOffsetIndex, setCurrentOffsetIndex] = useState(0)
@@ -67,7 +67,7 @@ export default function TimelineBody() {
           },
         }
       )
-      
+
       const keywordSet = new Set()
       response.data.records.forEach(record => {
         if (record.fields.KEYWORDS) {
@@ -76,7 +76,7 @@ export default function TimelineBody() {
           })
         }
       })
-      
+
       setAllKeywords(Array.from(keywordSet).sort())
     } catch (error) {
       console.error("Error fetching keywords:", error)
@@ -94,10 +94,10 @@ export default function TimelineBody() {
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true)
-      
+
       try {
         let filterFormula = ""
-        
+
         if (startDate && endDate) {
           filterFormula += `AND(IS_AFTER({DATE}, '${startDate}'), IS_BEFORE({DATE}, '${endDate}'))`
         } else if (startDate) {
@@ -105,7 +105,7 @@ export default function TimelineBody() {
         } else if (endDate) {
           filterFormula += `IS_BEFORE({DATE}, '${endDate}')`
         }
-        
+
         if (monthDay) {
           const [month, day] = monthDay.split('/')
           if (filterFormula) {
@@ -114,24 +114,24 @@ export default function TimelineBody() {
             filterFormula = `AND(MONTH({DATE}) = ${month}, DAY({DATE}) = ${day})`
           }
         }
-        
+
         // Improved keyword filter (multi-select)
         if (filterKeywords.length > 0) {
           const keywordFilters = filterKeywords.map(keyword => {
             const escapedKeyword = escapeQuotes(keyword);
             return `FIND(LOWER('${escapedKeyword.toLowerCase()}'), LOWER({KEYWORDS})) > 0`;
           }).join(',');
-          filterFormula = filterFormula 
-            ? `AND(${filterFormula}, OR(${keywordFilters}))` 
+          filterFormula = filterFormula
+            ? `AND(${filterFormula}, OR(${keywordFilters}))`
             : `OR(${keywordFilters})`;
         }
-      
-        
+
+
         // Improved search functionality
         if (searchQuery.trim()) {
           const escapedQuery = escapeQuotes(searchQuery.trim());
           const searchTerms = escapedQuery.split(/\s+/).filter(term => term.length > 0);
-          
+
           const searchFilters = searchTerms.map(term => {
             const lowerTerm = term.toLowerCase();
             return `OR(
@@ -142,13 +142,13 @@ export default function TimelineBody() {
           }).join(',');
 
           const searchFilter = `AND(${searchFilters})`;
-          filterFormula = filterFormula 
-            ? `AND(${filterFormula}, ${searchFilter})` 
+          filterFormula = filterFormula
+            ? `AND(${filterFormula}, ${searchFilter})`
             : searchFilter;
         }
-        
+
         const currentOffset = offsetHistory[currentOffsetIndex]
-        
+
         const response = await axios.get(
           "https://api.airtable.com/v0/appVhtDyx0VKlGbhy/Taylor%20Swift%20Master%20Tracker",
           {
@@ -165,10 +165,10 @@ export default function TimelineBody() {
             },
           }
         )
-        
+
         const hasMoreRecords = !!response.data.offset
         setHasMore(hasMoreRecords)
-        
+
         if (hasMoreRecords) {
           if (currentOffsetIndex === offsetHistory.length - 1) {
             setOffsetHistory(prev => [...prev, response.data.offset])
@@ -187,11 +187,12 @@ export default function TimelineBody() {
           location: record.fields.LOCATION || 'Location unknown',
           image: record.fields.IMAGE?.[0]?.url || null,
           year: record.fields.DATE ? new Date(record.fields.DATE).getFullYear() : '',
-          keywords: record.fields.KEYWORDS || []
+          keywords: record.fields.KEYWORDS || [],
+          notes: record.fields.NOTES || null
         }))
-        
+
         setPosts(formattedPosts)
-        
+
       } catch (error) {
         console.error("Error fetching records:", error)
       } finally {
@@ -261,7 +262,7 @@ export default function TimelineBody() {
       window.scrollTo(0, 0)
     }
   }
-  
+
   const handleNextPage = () => {
     if (hasMore) {
       setCurrentOffsetIndex(prev => prev + 1)
@@ -279,7 +280,7 @@ export default function TimelineBody() {
       <div className="max-w-6xl mx-auto px-4 mb-6 flex flex-wrap gap-2 py-8">
         {/* Sort By */}
         <div className="relative">
-          <button 
+          <button
             className="flex items-center justify-between bg-white text-[#6b7db3] border border-[#6b7db3] rounded-full px-4 py-1.5 text-sm min-w-[100px]"
             onClick={() => handleSortChange(sortOrder === "asc" ? "desc" : "asc")}
           >
@@ -290,14 +291,14 @@ export default function TimelineBody() {
 
         {/* Filter Keywords with Dropdown - Updated for multi-select */}
         <div className="relative">
-          <button 
+          <button
             className="flex items-center justify-between bg-white text-[#6b7db3] border border-[#6b7db3] rounded-full px-4 py-1.5 text-sm min-w-[150px]"
             onClick={() => setShowKeywordDropdown(!showKeywordDropdown)}
           >
             <span>{filterKeywords.length > 0 ? `${filterKeywords.length} selected` : "Filter Key words"}</span>
             <span className="ml-2">▼</span>
           </button>
-          
+
           {showKeywordDropdown && (
             <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-[#6b7db3] rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
               <div className="p-2">
@@ -384,14 +385,14 @@ export default function TimelineBody() {
               onKeyPress={handleSearchKeyPress}
             />
             <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-            <svg
-              className="w-4 h-4"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="#6b7db3"
+              <svg
+                className="w-4 h-4"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="#6b7db3"
               >
-              <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12A6 6 0 0110 4z" />
-            </svg>
+                <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12A6 6 0 0110 4z" />
+              </svg>
             </div>
           </form>
         </div>
@@ -399,7 +400,7 @@ export default function TimelineBody() {
         {/* Clear filter button when tags are selected */}
         {filterKeywords.length > 0 && (
           <div className="relative">
-            <button 
+            <button
               className="flex items-center justify-between bg-[#b91c1c] text-white rounded-full px-4 py-1.5 text-sm"
               onClick={() => {
                 setFilterKeywords([]);
@@ -417,8 +418,8 @@ export default function TimelineBody() {
       {filterKeywords.length > 0 && (
         <div className="max-w-6xl mx-auto px-4 mb-4 flex flex-wrap gap-2">
           {filterKeywords.map((keyword, index) => (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className="bg-[#8a9ac7] text-white text-xs px-3 py-1 rounded-full flex items-center cursor-pointer hover:bg-[#6b7db3]"
               onClick={() => {
                 setFilterKeywords(filterKeywords.filter(k => k !== keyword));
@@ -449,8 +450,8 @@ export default function TimelineBody() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {posts.map((post) => (
-                <div 
-                  key={post.id} 
+                <div
+                  key={post.id}
                   className="bg-[#ffe8e8] rounded-xl overflow-hidden border border-[#ffcaca] flex flex-col hover:shadow-lg transition-shadow duration-200 cursor-pointer h-80"
                   onClick={() => handleCardClick(post.id)}
                 >
@@ -459,33 +460,39 @@ export default function TimelineBody() {
                       {post.date}
                     </div>
 
-                    {/* Image container with consistent size */}
-                    <div className="w-[90%] h-40 mx-auto mt-2 rounded-[3%] bg-gray-100 flex items-center justify-center">
-                      {post.image ? (
-                        <img 
-                          src={post.image} 
-                          alt={post.title} 
-                          className="w-full h-full object-cover object-[center_30%] rounded-[3%] " 
+                    {/* Title above image */}
+                    <div className="px-4 pt-6 pb-2 mt-2 mb-2">
+                      <h3 className="text-[#b91c1c] font-medium text-sm text-center line-clamp-2">
+                        {post.title}
+                      </h3>
+                    </div>
+
+                    {/* Image container with consistent size - no "No Image" text */}
+                    <div className="w-[90%] h-32 mx-auto rounded-[3%] flex items-center justify-center">
+                      {post.image && (
+                        <img
+                          src={post.image}
+                          alt={post.title}
+                          className="w-full h-full object-cover object-[center_30%] rounded-[3%]"
                         />
-                      ) : (
-                        <div className="w-full h-full bg-gray-200 rounded-[3%] flex items-center justify-center">
-                          <span className="text-gray-400 text-sm">No Image</span>
-                        </div>
                       )}
                     </div>
                   </div>
 
                   <div className="p-4 flex flex-col flex-grow">
-                    <h3 className="text-[#b91c1c] font-medium text-base mb-2 line-clamp-2 flex-grow">
-                      {post.title}
-                    </h3>
+                    {/* Notes */}
+                    {post.notes && (
+                      <p className="text-[#6b7db3] text-xs mb-2 line-clamp-2">
+                        {post.notes}
+                      </p>
+                    )}
 
                     {/* Clickable tags */}
                     <div className="mt-auto">
                       <div className="flex flex-wrap gap-2">
                         {post.keywords?.slice(0, 3).map((keyword, index) => (
-                          <span 
-                            key={index} 
+                          <span
+                            key={index}
                             className="bg-[#8a9ac7] text-white text-[10px] px-1.5 py-0.5 rounded-full whitespace-nowrap cursor-pointer hover:bg-[#6b7db3] transition-colors"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -512,13 +519,13 @@ export default function TimelineBody() {
 
       {/* Pagination */}
       <div className="max-w-6xl mx-auto px-4 my-8 flex justify-center items-center gap-2">
-        <span 
+        <span
           className={`text-sm ${page > 1 ? 'text-[#bb6d6d] cursor-pointer' : 'text-[#bb6d6d]/50'}`}
           onClick={page > 1 ? handlePreviousPage : undefined}
         >
           Previous Page
         </span>
-        <button 
+        <button
           className={`w-8 h-8 flex items-center justify-center rounded-full border border-[#bb6d6d] ${page > 1 ? 'bg-[#e6edf7] text-[#bb6d6d]' : 'bg-[#e6edf7]/50 text-[#bb6d6d]/50'}`}
           onClick={page > 1 ? handlePreviousPage : undefined}
           disabled={page <= 1}
@@ -526,14 +533,14 @@ export default function TimelineBody() {
           &lt;
         </button>
         <div className="mx-2 text-[#bb6d6d]">Page {page}</div>
-        <button 
+        <button
           className={`w-8 h-8 flex items-center justify-center rounded-full border border-[#bb6d6d] ${hasMore ? 'bg-[#e6edf7] text-[#bb6d6d]' : 'bg-[#e6edf7]/50 text-[#bb6d6d]/50'}`}
           onClick={hasMore ? handleNextPage : undefined}
           disabled={!hasMore}
         >
           &gt;
         </button>
-        <span 
+        <span
           className={`text-sm ${hasMore ? 'text-[#bb6d6d] cursor-pointer' : 'text-[#bb6d6d]/50'}`}
           onClick={hasMore ? handleNextPage : undefined}
         >
@@ -543,14 +550,14 @@ export default function TimelineBody() {
 
       {/* View On This Day Button */}
       <div className="max-w-6xl mx-auto px-4 mb-0">
-        <button 
-         className="w-full bg-[#c25e5e] text-white py-3 rounded-full font-medium"
-         onClick={() => navigate("/timeline")}
+        <button
+          className="w-full bg-[#c25e5e] text-white py-3 rounded-full font-medium"
+          onClick={() => navigate("/timeline")}
         >
-         View On This Day
+          View On This Day
         </button>
       </div>
-      <br/>
+      <br />
     </div>
   )
 }

@@ -5,7 +5,7 @@ export default function Footer() {
     <footer className="w-full">
       <div className="relative">
         {/* Background Image */}
-        <div className="relative w-full h-[400px]">
+        <div className="relative w-full h-[340px]">
           <img
             src="/images/taylor_swift_background.png"
             alt="Taylor Swift Background"
@@ -15,19 +15,19 @@ export default function Footer() {
         </div>
 
         {/* Ad Placement */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl bg-white/90 p-6 rounded-lg text-center">
-          <h3 className="text-[#6b7db3] text-xl font-medium mb-4">Ad Placement</h3>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white/90 p-5 rounded-lg text-center">
+          <h3 className="text-[#6b7db3] text-lg font-medium mb-3">Ad Placement</h3>
         </div>
       </div>
 
       {/* Support Buttons */}
-      <div className="bg-[#e8ecf7] py-6 flex justify-center gap-4">
+      <div className="bg-[#e8ecf7] py-5 flex justify-center gap-3">
         <a
           href="https://buymeacoffee.com/swiftlore"
           target="_blank"
           rel="noopener noreferrer"
         >
-          <Button variant="secondary" className="rounded-full px-8">
+          <Button variant="secondary" className="rounded-full px-7">
             Support Us
           </Button>
         </a>
@@ -36,15 +36,15 @@ export default function Footer() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <Button variant="secondary" className="rounded-full px-8">
+          <Button variant="secondary" className="rounded-full px-7">
             Submit Suggestion
           </Button>
         </a>
       </div>
 
       {/* Copyright */}
-      <div className="bg-[#8a9ad4] py-4 text-center text-white">
-        <p>Copyright © 2025 Swift Lore</p>
+      <div className="bg-[#8a9ad4] py-3 text-center text-white">
+        <p className="text-sm">Copyright © 2025 Swift Lore</p>
       </div>
     </footer>
   )

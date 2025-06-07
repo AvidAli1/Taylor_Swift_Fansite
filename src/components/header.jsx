@@ -19,11 +19,18 @@ export default function Header() {
 
   const handleSearch = (e) => {
     e.preventDefault()
-    if (searchQuery.trim()) {
-      navigate(`/?q=${encodeURIComponent(searchQuery.trim())}`)
-    } else {
-      navigate('/') // Clear search if query is empty
+    const trimmedQuery = searchQuery.trim()
+    
+    if (!trimmedQuery) {
+      navigate('/')
+      return
     }
+
+    // Force first letter uppercase (e.g., "travis" → "Travis")
+    const formattedQuery = 
+      trimmedQuery.charAt(0).toUpperCase() + trimmedQuery.slice(1)
+    
+    navigate(`/?q=${encodeURIComponent(formattedQuery)}`)
   }
 
   const handleInputChange = (e) => {
@@ -36,34 +43,33 @@ export default function Header() {
     }
   }
 
-  // Clear search and navigate home
   const handleLogoClick = () => {
     setSearchQuery("")
     navigate('/')
   }
 
   return (
-    <header className="w-full bg-[#8a9ad4] py-1 md:py-2 px-2 sm:px-6 md:px-10">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-0 md:gap-8">
+    <header className="w-full bg-[#8a9ad4] py-0 md:py-1 px-1.5 sm:px-5 md:px-8">
+      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-0 md:gap-6">
         {/* Logo section */}
         <div className="w-full flex justify-center md:justify-start md:w-[55%]">
           <div 
-            className="w-full max-w-[500px] md:max-w-[700px] cursor-pointer mb-0 md:mb-0" 
+            className="w-full max-w-[425px] md:max-w-[600px] cursor-pointer mb-0 md:mb-0" 
             onClick={handleLogoClick}
           >
             <img 
               src="/images/swift_lore.png" 
               alt="Swift Lore" 
-              className="w-full h-auto object-contain min-h-[200px] max-h-[200px] md:min-h-[350px] md:max-h-[350px]"
+              className="w-full h-auto object-contain min-h-[170px] max-h-[170px] md:min-h-[300px] md:max-h-[300px]"
             />
           </div>
         </div>
 
         {/* Content section */}
-        <div className="w-full md:w-2/5 flex flex-col items-center md:items-start gap-4 md:gap-6 md:mt-2 text-center md:text-left"> 
-          <div className="w-72 md:w-full md:max-w-md">
-            <p className="text-white text-sm md:text-base leading-tight md:leading-relaxed text-left 
-              -translate-y-6 md:translate-y-0">
+        <div className="w-full md:w-2/5 flex flex-col items-center md:items-start gap-3 md:gap-5 md:mt-1.5 text-center md:text-left"> 
+          <div className="w-64 md:w-full md:max-w-md">
+            <p className="text-white text-xs md:text-sm leading-tight md:leading-relaxed text-left 
+              -translate-y-5 md:translate-y-0">
               A fan-crafted, interactive timeline<br className="md:hidden" />
               chronicling the epic life and career of Taylor<br className="md:hidden" />
               Swift. Covering everything from albums,<br className="md:hidden" />
@@ -71,8 +77,8 @@ export default function Header() {
             </p>
           </div>
 
-          {/* Improved Search */}
-          <div className="w-72 md:w-full md:max-w-md -translate-y-4 md:translate-y-0">
+          {/* Search Bar */}
+          <div className="w-64 md:w-full md:max-w-md -translate-y-3 md:translate-y-0">
             <form onSubmit={handleSearch} className="relative">
               <input
                 type="text"
@@ -80,16 +86,19 @@ export default function Header() {
                 value={searchQuery}
                 onChange={handleInputChange}
                 onKeyPress={handleKeyPress}
-                className="w-full rounded-full py-2 md:py-3 pl-8 md:pl-10 pr-3 md:pr-4 text-sm bg-white/80 text-gray-800 focus:outline-none focus:ring-2 focus:ring-white"
-                inputMode="search" // Better mobile keyboard
-                enterKeyHint="search" // Mobile keyboard action
+                className="w-full rounded-full py-1.5 md:py-2.5 pl-7 md:pl-8 pr-2.5 md:pr-3 text-xs bg-white/80 text-gray-800 focus:outline-none focus:ring-2 focus:ring-white"
+                inputMode="search"
+                enterKeyHint="search"
+                autoCapitalize="none" // Prevent mobile auto-capitalization
+                autoCorrect="off"
+                spellCheck="false"
               />
               <button 
                 type="submit"
-                className="absolute inset-y-0 left-2 md:left-3 flex items-center pointer-events-auto hover:text-gray-600 transition-colors"
+                className="absolute inset-y-0 left-1.5 md:left-2.5 flex items-center pointer-events-auto hover:text-gray-600 transition-colors"
               >
                 <svg
-                  className="h-4 w-4 md:h-5 md:w-5 text-gray-400"
+                  className="h-3.5 w-3.5 md:h-4 md:w-4 text-gray-400"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
                   fill="none"
@@ -102,18 +111,17 @@ export default function Header() {
                   <path d="m21 21-4.3-4.3"></path>
                 </svg>
               </button>
-              {/* Clear button when text is present */}
               {searchQuery && (
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-3 flex items-center"
+                  className="absolute inset-y-0 right-2.5 flex items-center"
                   onClick={() => {
                     setSearchQuery("")
                     navigate('/')
                   }}
                 >
                   <svg
-                    className="h-4 w-4 md:h-5 md:w-5 text-gray-500"
+                    className="h-3.5 w-3.5 md:h-4 md:w-4 text-gray-500"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
                     fill="none"
@@ -129,7 +137,7 @@ export default function Header() {
           </div>
 
           <button
-            className="bg-[#b66b6b] text-white hover:bg-[#a55e5e] rounded-full px-4 md:px-7 py-2 md:py-3 font-semibold text-sm w-48 md:w-auto mb-2 -translate-y-2 md:translate-y-0"
+            className="bg-[#b66b6b] text-white hover:bg-[#a55e5e] rounded-full px-3.5 md:px-6 py-1.5 md:py-2.5 font-semibold text-xs w-40 md:w-auto mb-1.5 -translate-y-1.5 md:translate-y-0"
             onClick={() => navigate("/posts")}
           >
             View Full Timeline

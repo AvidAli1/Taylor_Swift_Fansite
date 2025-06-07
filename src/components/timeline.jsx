@@ -11,8 +11,8 @@ import "./timeline.css"
 export default function Timeline() {
   const navigate = useNavigate()
   const [showScrollHint, setShowScrollHint] = useState(true)
-
   const [records, setRecords] = useState([]);
+  const [screenScale, setScreenScale] = useState(1); // New state for dynamic scaling
 
   const today = new Date();
   const day = today.getDate();          
@@ -21,6 +21,74 @@ export default function Timeline() {
   // for next and previous day buttons (4,5) (5,31) (9,9)
   const [currentMonth, setCurrentMonth] = useState(month); // to set month
   const [currentDay, setCurrentDay] = useState(day); // to set day
+
+  // Dynamic scaling based on screen resolution
+  useEffect(() => {
+    const calculateScale = () => {
+      const screenWidth = window.screen.width;
+      const screenHeight = window.screen.height;
+      const pixelDensity = window.devicePixelRatio || 1;
+      
+      // Base resolution reference (1920x1080)
+      const baseWidth = 1920;
+      const baseHeight = 1080;
+      
+      // Calculate effective resolution (accounting for pixel density)
+      const effectiveWidth = screenWidth * pixelDensity;
+      const effectiveHeight = screenHeight * pixelDensity;
+      
+      console.log(`Screen: ${screenWidth}x${screenHeight}, Pixel Density: ${pixelDensity}, Effective: ${effectiveWidth}x${effectiveHeight}`);
+      
+      let scale = 1;
+      
+      // Scale based on resolution brackets
+      if (effectiveWidth >= 5120) {
+        // 5K iMac (5120x2880) and higher
+        scale = 0.6; // Much smaller for very high res displays
+      } else if (effectiveWidth >= 3840) {
+        // 4K displays (3840x2160)
+        scale = 0.65;
+      } else if (effectiveWidth >= 2560) {
+        // QHD displays and iMac 27" (2560x1440)
+        scale = 0.7;
+      } else if (effectiveWidth >= 1920) {
+        // Full HD displays (1920x1080)
+        scale = 0.85; // 15% smaller as requested
+      } else if (effectiveWidth >= 1440) {
+        // HD+ displays
+        scale = 0.9;
+      } else {
+        // Lower resolution displays
+        scale = 1;
+      }
+      
+      // Fine-tune based on viewport width for responsive design
+      const viewportWidth = window.innerWidth;
+      if (viewportWidth >= 1536) { // 2xl breakpoint
+        scale *= 0.95;
+      } else if (viewportWidth >= 1280) { // xl breakpoint
+        scale *= 1;
+      } else if (viewportWidth >= 1024) { // lg breakpoint
+        scale *= 1.05;
+      }
+      
+      console.log(`Applied scale: ${scale}`);
+      setScreenScale(scale);
+    };
+
+    calculateScale();
+    
+    // Recalculate on window resize
+    const handleResize = () => {
+      setTimeout(calculateScale, 100); // Small delay to ensure accurate measurements
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
   
   const handleNextDay = () => {
     const currentDate = new Date(2020, currentMonth - 1, currentDay); // Dummy year
@@ -281,9 +349,9 @@ export default function Timeline() {
             )}
           </div>
 
-          {/* Desktop Timeline (Two Columns) */}
+          {/* Desktop Timeline (Two Columns) - Now with dynamic scaling */}
           <div className="hidden md:block h-[60vh] overflow-y-auto pr-4 timeline-scroll">
-            <div className="relative flex justify-center">
+            <div className="relative flex justify-center" style={{ transform: `scale(${screenScale})`, transformOrigin: 'top center' }}>
               {/* Center line */}
               <div className="relative w-[2px] flex flex-col items-center">
                 <div className="h-[1620px] w-[5px] bg-[#8a9ad4]"></div>
@@ -299,8 +367,8 @@ export default function Timeline() {
               </div>
 
               {/* Left side content */}
-              <div className="absolute left-16 w-[calc(50%-15px)] space-y-[152px] origin-top-right lg:scale-[0.75] md:scale-[0.65] py-64 px-2">
-                <div className="relative mt-[120px] w-[80%]">
+              <div className="absolute left-[90px] w-[calc(50%-15px)] space-y-[152px] py-64 px-2">
+                <div className="relative mt-[30px] w-[80%]">
                   <div className="relative">
                     {/* Background Rectangle Image - Now controls the content height */}
                     <img
@@ -380,7 +448,7 @@ export default function Timeline() {
                   </div>
                 </div>
 
-                <div className="absolute top-[920px] w-[80%]">
+                <div className="absolute top-[660px] w-[80%]">
                   <div className="relative">
                     {/* Background Rectangle Image - Now using min-height */}
                     <img
@@ -462,7 +530,7 @@ export default function Timeline() {
                   </div>
                 </div>
 
-                <div className="absolute top-[1660px] w-[80%]">
+                <div className="absolute top-[1210px] w-[80%]">
                   <div className="relative">
                     {/* Background Rectangle Image - Now using min-height */}
                     <img
@@ -546,7 +614,7 @@ export default function Timeline() {
               </div>
 
               {/* Right side content */}
-              <div className="absolute right-[-3px] w-[calc(50%-15px)] space-y-[76px] origin-top-left lg:scale-[0.75] md:scale-[0.65]">
+              <div className="absolute right-[-3px] w-[calc(50%-15px)] space-y-[76px]">
                 <div className="relative top-[12px] w-[75%] ml-8">
                   <div className="relative">
                     {/* Background Rectangle Image - Now using min-height */}
@@ -628,7 +696,7 @@ export default function Timeline() {
                   </div>
                 </div>
 
-                <div className="absolute top-[640px] w-[75%] ml-8">
+                <div className="absolute top-[460px] w-[75%] ml-8">
                   <div className="relative">
                     {/* Background Rectangle Image - Now using min-height */}
                     <img
@@ -709,7 +777,7 @@ export default function Timeline() {
                   </div>
                 </div>
 
-                <div className="absolute top-[1410px] w-[75%] ml-8">
+                <div className="absolute top-[1040px] w-[75%] ml-8">
                   <div className="relative">
                     {/* Background Rectangle Image - Now using min-height */}
                     <img
@@ -790,7 +858,6 @@ export default function Timeline() {
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
 
