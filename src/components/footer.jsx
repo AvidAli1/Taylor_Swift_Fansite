@@ -43,9 +43,29 @@ export default function Footer() {
       </div>
 
       {/* Copyright */}
-      <div className="bg-[#8a9ad4] py-3 text-center text-white">
-        <p className="text-sm">Copyright © 2025 Swift Lore</p>
+      < div className="bg-[#8a9ad4] py-3 text-center text-white">
+        <div className="flex flex-wrap justify-center items-center gap-4 text-sm">
+          <a
+            href="/cookie_policy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white hover:text-gray-200 underline"
+          >
+            Cookie Policy
+          </a>
+
+          <p>Copyright © 2025 Swift Lore</p>
+
+          <a
+            href="/privacy_policy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white hover:text-gray-200 underline"
+          >
+            Privacy Policy
+          </a>
+        </div>
       </div>
-    </footer>
+    </footer >
   )
 }
