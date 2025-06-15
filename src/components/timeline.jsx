@@ -9,872 +9,373 @@ import axios from "axios"
 import "./timeline.css"
 
 export default function Timeline() {
-  const navigate = useNavigate()
-  const [showScrollHint, setShowScrollHint] = useState(true)
-  const [records, setRecords] = useState([]);
-  const [screenScale, setScreenScale] = useState(1); // New state for dynamic scaling
+    const navigate = useNavigate()
+    const [showScrollHint, setShowScrollHint] = useState(true)
+    const [records, setRecords] = useState([]);
+    const [screenScale, setScreenScale] = useState(1);
 
-  const today = new Date();
-  const day = today.getDate();          
-  const month = today.getMonth() + 1;
-  
-  // for next and previous day buttons (4,5) (5,31) (9,9)
-  const [currentMonth, setCurrentMonth] = useState(month); // to set month
-  const [currentDay, setCurrentDay] = useState(day); // to set day
+    const today = new Date();
+    const day = today.getDate();
+    const month = today.getMonth() + 1;
 
-  // Dynamic scaling based on screen resolution
-  useEffect(() => {
-    const calculateScale = () => {
-      const screenWidth = window.screen.width;
-      const screenHeight = window.screen.height;
-      const pixelDensity = window.devicePixelRatio || 1;
-      
-      // Base resolution reference (1920x1080)
-      const baseWidth = 1920;
-      const baseHeight = 1080;
-      
-      // Calculate effective resolution (accounting for pixel density)
-      const effectiveWidth = screenWidth * pixelDensity;
-      const effectiveHeight = screenHeight * pixelDensity;
-      
-      console.log(`Screen: ${screenWidth}x${screenHeight}, Pixel Density: ${pixelDensity}, Effective: ${effectiveWidth}x${effectiveHeight}`);
-      
-      let scale = 1;
-      
-      // Scale based on resolution brackets
-      if (effectiveWidth >= 5120) {
-        // 5K iMac (5120x2880) and higher
-        scale = 0.6; // Much smaller for very high res displays
-      } else if (effectiveWidth >= 3840) {
-        // 4K displays (3840x2160)
-        scale = 0.65;
-      } else if (effectiveWidth >= 2560) {
-        // QHD displays and iMac 27" (2560x1440)
-        scale = 0.7;
-      } else if (effectiveWidth >= 1920) {
-        // Full HD displays (1920x1080)
-        scale = 0.85; // 15% smaller as requested
-      } else if (effectiveWidth >= 1440) {
-        // HD+ displays
-        scale = 0.9;
-      } else {
-        // Lower resolution displays
-        scale = 1;
-      }
-      
-      // Fine-tune based on viewport width for responsive design
-      const viewportWidth = window.innerWidth;
-      if (viewportWidth >= 1536) { // 2xl breakpoint
-        scale *= 0.95;
-      } else if (viewportWidth >= 1280) { // xl breakpoint
-        scale *= 1;
-      } else if (viewportWidth >= 1024) { // lg breakpoint
-        scale *= 1.05;
-      }
-      
-      console.log(`Applied scale: ${scale}`);
-      setScreenScale(scale);
+    const [currentMonth, setCurrentMonth] = useState(month);
+    const [currentDay, setCurrentDay] = useState(day);
+
+    useEffect(() => {
+        const calculateScale = () => {
+            const screenWidth = window.screen.width;
+            const screenHeight = window.screen.height;
+            const pixelDensity = window.devicePixelRatio || 1;
+
+            const baseWidth = 1920;
+            const baseHeight = 1080;
+
+            const effectiveWidth = screenWidth * pixelDensity;
+            const effectiveHeight = screenHeight * pixelDensity;
+
+            console.log(`Screen: ${screenWidth}x${screenHeight}, Pixel Density: ${pixelDensity}, Effective: ${effectiveWidth}x${effectiveHeight}`);
+
+            let scale = 1;
+
+            if (effectiveWidth >= 5120) {
+                scale = 0.51; // 15% reduction from 0.6
+            } else if (effectiveWidth >= 3840) {
+                scale = 0.55; // 15% reduction from 0.65
+            } else if (effectiveWidth >= 2560) {
+                scale = 0.6; // 15% reduction from 0.7
+            } else if (effectiveWidth >= 1920) {
+                scale = 0.72; // 15% reduction from 0.85
+            } else if (effectiveWidth >= 1440) {
+                scale = 0.77; // 15% reduction from 0.9
+            } else {
+                scale = 0.85; // 15% reduction from 1
+            }
+
+            const viewportWidth = window.innerWidth;
+            if (viewportWidth >= 1536) {
+                scale *= 0.81; // 15% reduction from 0.95
+            } else if (viewportWidth >= 1280) {
+                scale *= 0.85; // 15% reduction from 1
+            } else if (viewportWidth >= 1024) {
+                scale *= 0.89; // 15% reduction from 1.05
+            }
+
+            console.log(`Applied scale: ${scale}`);
+            setScreenScale(scale);
+        };
+
+        calculateScale();
+
+        const handleResize = () => {
+            setTimeout(calculateScale, 100);
+        };
+
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, []);
+
+    const handleNextDay = () => {
+        const currentDate = new Date(2020, currentMonth - 1, currentDay);
+        currentDate.setDate(currentDate.getDate() + 1);
+        setCurrentMonth(currentDate.getMonth() + 1);
+        setCurrentDay(currentDate.getDate());
     };
 
-    calculateScale();
-    
-    // Recalculate on window resize
-    const handleResize = () => {
-      setTimeout(calculateScale, 100); // Small delay to ensure accurate measurements
-    };
-    
-    window.addEventListener('resize', handleResize);
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-  
-  const handleNextDay = () => {
-    const currentDate = new Date(2020, currentMonth - 1, currentDay); // Dummy year
-    currentDate.setDate(currentDate.getDate() + 1);
-    setCurrentMonth(currentDate.getMonth() + 1); // Months are 0-based
-    setCurrentDay(currentDate.getDate());
-  };
-
-  const handlePreviousDay = () => {
-    const currentDate = new Date(2020, currentMonth - 1, currentDay); // Dummy year
-    currentDate.setDate(currentDate.getDate() - 1);
-    setCurrentMonth(currentDate.getMonth() + 1);
-    setCurrentDay(currentDate.getDate());
-  };
-
-  // Add handleReadMore function to match functionality in timeline-body.jsx
-  const handleReadMore = (postId) => {
-    navigate(`/post_details?id=${postId}`);
-  };
-
-  const hasImage = !!records[0]?.fields?.IMAGE?.[0]?.url;
-
-  // Fetch records from Airtable API
-  useEffect(() => {
-    const fetchRecordsByDate = async (month, day) => {
-      const fetchByDate = async () => {
-        const response = await axios.get(
-          "https://api.airtable.com/v0/appVhtDyx0VKlGbhy/Taylor%20Swift%20Master%20Tracker",
-          {
-            headers: {
-              Authorization: `Bearer ${import.meta.env.VITE_AIRTABLE_API_KEY}`,
-            },
-            params: {
-              maxRecords: 6, // You can increase this if you need more than 6 records
-              filterByFormula: `AND(MONTH(DATE) = ${month}, DAY(DATE) = ${day})`,
-              sort: [{ field: "DATE", direction: "asc" }],
-            },
-          }
-        );
-        return response.data.records || [];
-      };
-
-      try {
-        const fetched = await fetchByDate();
-        setRecords(fetched); // Store in state
-        console.log("Fetched records:", fetched);
-      } catch (error) {
-        console.error("Error fetching records:", error);
-      }
+    const handlePreviousDay = () => {
+        const currentDate = new Date(2020, currentMonth - 1, currentDay);
+        currentDate.setDate(currentDate.getDate() - 1);
+        setCurrentMonth(currentDate.getMonth() + 1);
+        setCurrentDay(currentDate.getDate());
     };
 
-    // Fetch records for April 20th (Month = 4, Day = 20)
-    if(currentMonth && currentDay) {
-    fetchRecordsByDate(currentMonth, currentDay);
-    }
-  }, [currentMonth, currentDay]);
+    const handleCardClick = (postId) => {
+        navigate(`/post_details?id=${postId}`);
+    };
 
-  // Handle scroll event to hide the scroll hint
-  useEffect(() => {
-    const timelineElement = document.querySelector(".mobile-timeline-container")
+    useEffect(() => {
+        const fetchRecordsByDate = async (month, day) => {
+            const fetchByDate = async () => {
+                const response = await axios.get(
+                    "https://api.airtable.com/v0/appVhtDyx0VKlGbhy/Taylor%20Swift%20Master%20Tracker",
+                    {
+                        headers: {
+                            Authorization: `Bearer ${import.meta.env.VITE_AIRTABLE_API_KEY}`,
+                        },
+                        params: {
+                            maxRecords: 6,
+                            filterByFormula: `AND(MONTH(DATE) = ${month}, DAY(DATE) = ${day})`,
+                            sort: [{ field: "DATE", direction: "asc" }],
+                        },
+                    }
+                );
+                return response.data.records || [];
+            };
 
-    const handleScroll = () => {
-      if (timelineElement && timelineElement.scrollTop > 0) {
-        setShowScrollHint(false)
-      }
-    }
+            try {
+                const fetched = await fetchByDate();
+                setRecords(fetched);
+                console.log("Fetched records:", fetched);
+            } catch (error) {
+                console.error("Error fetching records:", error);
+            }
+        };
 
-    timelineElement?.addEventListener("scroll", handleScroll)
+        if (currentMonth && currentDay) {
+            fetchRecordsByDate(currentMonth, currentDay);
+        }
+    }, [currentMonth, currentDay]);
 
-    return () => {
-      timelineElement?.removeEventListener("scroll", handleScroll)
-    }
-  }, [])
+    useEffect(() => {
+        const timelineElement = document.querySelector(".mobile-timeline-container")
 
-  return (
-    <section className="w-full bg-[#e8ecf7] py-4 md:py-8 px-2 md:px-12 flex-grow">
-      <div className="container mx-auto h-full flex flex-col">
-        {/* On This Day Section */}
-        <div className="text-center mb-4 md:mb-8">
-          <div className="relative w-full mb-2 md:mb-4 px-2 md:px-6">
-            <div className="relative w-full px-2 md:px-4 py-3 md:py-6 bg-[#e8eef9]">
-              {/* Container for the text in the center */}
-              <div className="max-w-4xl mx-auto text-center">
-                <h2 className="text-lg sm:text-2xl md:text-4xl lg:text-7xl font-serif text-[#8e3e3e] text-center">
-                  <span className="block">ON THIS DAY</span>
-                  <span className="text-xs sm:text-lg md:text-2xl lg:text-4xl block mt-1">in Taylor Swift History</span>
-                </h2>
-              </div>
+        const handleScroll = () => {
+            if (timelineElement && timelineElement.scrollTop > 0) {
+                setShowScrollHint(false)
+            }
+        }
 
-              {/* Left Star - Absolutely positioned */}
-              <div className="absolute left-1 sm:left-2 md:left-4 lg:left-8 top-1/2 transform -translate-y-1/2">
-                <img
-                  src="/images/star.png"
-                  alt="Star"
-                  className="w-[26px] h-[26px] sm:w-[40px] sm:h-[40px] md:w-[66px] md:h-[66px] lg:w-[100px] lg:h-[100px]"
-                />
-              </div>
+        timelineElement?.addEventListener("scroll", handleScroll)
 
-              {/* Right Star - Absolutely positioned */}
-              <div className="absolute right-1 sm:right-2 md:right-4 lg:right-8 top-1/2 transform -translate-y-1/2">
-                <img
-                  src="/images/star.png"
-                  alt="Star"
-                 className="w-[26px] h-[26px] sm:w-[40px] sm:h-[40px] md:w-[66px] md:h-[66px] lg:w-[100px] lg:h-[100px]"
-                />
-              </div>
-            </div>
-          </div>
+        return () => {
+            timelineElement?.removeEventListener("scroll", handleScroll)
+        }
+    }, [])
 
-          <div className="flex items-center justify-center gap-1 sm:gap-2 md:gap-4 my-2 md:my-4">
-            <Button
-              variant="secondary"
-              className="rounded-full px-2 sm:px-4 md:px-6 text-xs sm:text-sm flex items-center gap-1 md:gap-2 mr-3"
-              onClick={handlePreviousDay}
+    // Card component to be used for both mobile and desktop
+    const TimelineCard = ({ record, index }) => {
+        const navigate = useNavigate();
+
+        const handleCardClick = () => {
+            navigate(`/post_details?id=${record.id}`);
+        };
+
+        const handleTagClick = (e, keyword) => {
+            e.stopPropagation();
+            navigate(`/posts?keyword=${encodeURIComponent(keyword)}`);
+        };
+
+        return (
+            <div
+                className="relative mt-[43px] cursor-pointer hover:opacity-95 transition-opacity"
+                style={{ marginTop: index === 0 ? "17px" : "" }}
+                onClick={handleCardClick}
             >
-              <ChevronLeft size={12} className="md:size-16" />
-              <span className="hidden sm:inline">Previous Day</span>
-              <span className="sm:hidden mr-2">Prev</span>
-            </Button>
+                <div className="relative">
+                    <div className="bg-gradient-to-br from-[#fce0e0] to-[#f8d7da] rounded-[13px] shadow-lg border border-[#e8c5c8] p-1">
+                        <div className="bg-white/80 backdrop-blur-sm rounded-[10px] p-3 border border-[#f0d0d3]">
+                            {/* Date Badge */}
+                            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 border border-[#8e3e3e] bg-white rounded-full px-3 py-0.5 text-xs text-[#8e3e3e] font-semibold shadow-md z-10 min-w-[102px] text-center">
+                                {record?.fields?.DATE
+                                    ? (() => {
+                                        const date = new Date(record.fields.DATE);
+                                        const options = { month: "long" };
+                                        const month = date.toLocaleString("en-US", options);
+                                        const day = String(date.getDate()).padStart(2, "0");
+                                        const year = date.getFullYear();
+                                        return `${month}-${day}-${year}`;
+                                    })()
+                                    : "Loading..."}
+                            </div>
 
-            <div className="bg-white rounded-full px-4 sm:px-6 md:px-8 py-1 md:py-2 min-w-[120px] sm:min-w-[160px] md:min-w-[200px] border border-[#b66b6b]">
-              <span className="text-[#8e3e3e] text-sm md:text-base font-medium">
-                {records.length > 0 && records[0].fields?.DATE? 
-                  new Date(records[0].fields.DATE).toLocaleDateString('en-US', {
-                      month: 'long',
-                      day: 'numeric',
-                    })
-                  : "Loading..."}
-              </span>
-            </div>
+                            <div className="flex flex-col gap-2.5 mt-1.5">
+                                {/* Event Image - Empty space reserved even when no image */}
+                                <div className="w-full h-[119px] md:h-[170px] relative rounded-xl overflow-hidden shadow-md">
+                                    {record?.fields?.IMAGE?.[0]?.url ? (
+                                        <img
+                                            src={record.fields.IMAGE[0].url}
+                                            alt="Taylor Swift Event"
+                                            className="absolute inset-0 w-full h-full object-cover object-[center_35%]"
+                                        />
+                                    ) : null}
+                                </div>
 
-            <Button
-              variant="secondary"
-              className="rounded-full px-2 sm:px-4 md:px-6 text-xs sm:text-sm flex items-center gap-1 md:gap-2 ml-3"
-              onClick={handleNextDay}
-            >
-              <span className="hidden sm:inline">Next Day</span>
-              <span className="sm:hidden ml-2">Next</span>
-              <ChevronRight size={12} className="md:size-16" />
-            </Button>
-          </div>
-        </div>
+                                {/* Event Description */}
+                                <h3 className="text-[#8e3e3e] font-bold text-sm md:text-base leading-relaxed text-center">
+                                    {record?.fields?.EVENT || 'Event description unavailable'}
+                                </h3>
 
-        {/* Timeline Section - Mobile vs Desktop layouts */}
-        <div className="relative mt-6 md:mt-12 mb-4 md:mb-8 flex-grow overflow-hidden">
-          {/* Mobile Timeline (Single Column) */}
-          <div className="md:hidden h-[60vh] overflow-y-auto relative mobile-timeline-container">
-            <div className="relative flex justify-center">
-              {/* Center line */}
-              <div className="relative w-[2px] flex flex-col items-center bg-[#e8ecf7]">
-                <div className="h-[2000px] w-[3px] bg-[#8a9ad4]"></div>
-
-                {/* Circles on the line - dynamically positioned based on records */}
-                <div className="absolute left-1/2 -translate-x-1/2 top-[0px] w-5 h-5 rounded-full bg-[#6B78B4]"></div>
-                {records.slice(1, 5).map((_, index) => (
-                  <div key={index} className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-[#FEE6E3] border-2 border-[#6B78B4]`} 
-                       style={{ top: `${200 + (index * 200)}px` }}></div>
-                ))}
-                <div className="absolute left-1/2 -translate-x-1/2 top-[1200px] w-5 h-5 rounded-full bg-[#6B78B4]"></div>
-              </div>
-
-              {/* Mobile Timeline Items - Styled to match desktop */}
-              <div className="absolute left-[20px] w-[calc(100%-30px)] space-y-[50px] pb-4">
-                {records.map((record, index) => (
-                  <div key={index} className="relative mt-[50px]" style={{ marginTop: index === 0 ? "20px" : "" }}>
-                    <div className="relative">
-                      {/* Background using similar styling approach as desktop */}
-                      <div className="bg-gradient-to-br from-[#fce0e0] to-[#f8d7da] rounded-[15px] shadow-lg border border-[#e8c5c8] p-1">
-                        <div className="bg-white/80 backdrop-blur-sm rounded-[12px] p-4 border border-[#f0d0d3]">
-                          
-                          {/* Date Badge - styled like desktop */}
-                          <div className="absolute -top-3 left-1/2 -translate-x-1/2 border border-[#8e3e3e] bg-white rounded-full px-4 py-1 text-xs text-[#8e3e3e] font-semibold shadow-md z-10 min-w-[120px] text-center">
-                            {record?.fields?.DATE
-                              ? (() => {
-                                  const date = new Date(record.fields.DATE);
-                                  const options = { month: "long" };
-                                  const month = date.toLocaleString("en-US", options);
-                                  const day = String(date.getDate()).padStart(2, "0");
-                                  const year = date.getFullYear();
-                                  return `${month}-${day}-${year}`;
-                                })()
-                              : "Loading..."}
-                          </div>
-
-                          <div className="flex flex-col gap-3 mt-2">
-                            {/* Event Image */}
-                            {record?.fields?.IMAGE?.[0]?.url ? (
-                              <div className="w-full h-[140px] relative rounded-xl overflow-hidden shadow-md">
-                                <img
-                                  src={record.fields.IMAGE[0].url}
-                                  alt="Taylor Swift Event"
-                                  className="absolute inset-0 w-full h-full object-cover object-[center_35%]"
-                                />
-                              </div>
-                            ) : (
-                              <div className="w-full h-[100px] bg-gradient-to-r from-[#e8ecf7] to-[#d8e2f7] rounded-xl flex items-center justify-center">
-                                <span className="text-[#8a9ad4] text-sm">No Image Available</span>
-                              </div>
-                            )}
-
-                            {/* Event Description */}
-                            <h3 className="text-[#8e3e3e] font-bold text-sm leading-relaxed text-center">
-                              {record?.fields?.EVENT || 'Event description unavailable'}
-                            </h3>
-                            
-                            {/* Notes */}
-                            {record?.fields?.NOTES && (
-                              <p className="text-xs text-center font-medium text-gray-700 leading-relaxed">
-                                {record.fields.NOTES}
-                              </p>
-                            )}
-
-                            {/* Read More Button */}
-                            <Button
-                              variant="outline"
-                              className="self-center text-xs border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-4 py-1.5 font-medium transition-all duration-200"
-                              onClick={() => handleReadMore(record.id)}
-                            >
-                              Read More →
-                            </Button>
-
-                            {/* Divider line like desktop */}
-                            <div className="w-full h-[1px] bg-[#8e3e3e] rounded-full opacity-60"></div>
-                            
-                            {/* Keywords section */}
-                            {record?.fields?.KEYWORDS && record.fields.KEYWORDS.length > 0 && (
-                              <div className="flex flex-wrap gap-1.5 justify-center">
-                                {record.fields.KEYWORDS.slice(0, 4).map((tag, tagIndex) => (
-                                  <div
-                                    key={tagIndex}
-                                    className="bg-[#8a9ac7] text-white font-medium text-xs px-2.5 py-1 rounded-full whitespace-nowrap shadow-sm"
-                                  >
-                                    {tag}
-                                  </div>
-                                ))}
-                                {record.fields.KEYWORDS.length > 4 && (
-                                  <div className="bg-[#b8c5e8] text-[#8e3e3e] font-medium text-xs px-2.5 py-1 rounded-full">
-                                    +{record.fields.KEYWORDS.length - 4}
-                                  </div>
+                                {/* Notes */}
+                                {record?.fields?.NOTES && (
+                                    <p className="text-xs md:text-sm text-center font-medium text-gray-700 leading-relaxed">
+                                        {record.fields.NOTES}
+                                    </p>
                                 )}
-                              </div>
-                            )}
-                          </div>
+
+                                {/* Divider line */}
+                                <div className="w-full h-[1px] bg-[#8e3e3e] rounded-full opacity-60"></div>
+
+                                {/* Keywords section with clickable tags */}
+                                {record?.fields?.KEYWORDS && record.fields.KEYWORDS.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 md:gap-1.5 justify-center">
+                                        {record.fields.KEYWORDS.slice(0, 4).map((tag, tagIndex) => (
+                                            <div
+                                                key={tagIndex}
+                                                className="bg-[#8a9ac7] text-white font-medium text-xs px-2 py-0.5 rounded-full whitespace-nowrap shadow-sm cursor-pointer hover:bg-[#6b7db3] transition-colors"
+                                                onClick={(e) => handleTagClick(e, tag)}
+                                            >
+                                                {tag}
+                                            </div>
+                                        ))}
+                                        {record.fields.KEYWORDS.length > 4 && (
+                                            <div className="bg-[#b8c5e8] text-[#8e3e3e] font-medium text-xs px-2 py-0.5 rounded-full">
+                                                +{record.fields.KEYWORDS.length - 4}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                </div>
             </div>
-            
-            {/* Scroll hint and button - Only show if showScrollHint is true */}
-            {showScrollHint && (
-              <div className="scroll-hint bottom-0">
-                <div className="scroll-blur"></div>
-                <span className="scroll-text">Scroll down</span>
-              </div>
-            )}
-          </div>
+        );
+    };
 
-          {/* Desktop Timeline (Two Columns) - Now with dynamic scaling */}
-          <div className="hidden md:block h-[60vh] overflow-y-auto pr-4 timeline-scroll">
-            <div className="relative flex justify-center" style={{ transform: `scale(${screenScale})`, transformOrigin: 'top center' }}>
-              {/* Center line */}
-              <div className="relative w-[2px] flex flex-col items-center">
-                <div className="h-[1620px] w-[5px] bg-[#8a9ad4]"></div>
+    return (
+        <section className="w-full bg-[#e8ecf7] py-3 md:py-7 px-2 md:px-10 flex-grow">
+            <div className="container mx-auto h-full flex flex-col">
+                {/* On This Day Section */}
+                <div className="text-center mb-3 md:mb-7">
+                    <div className="relative w-full mb-2 md:mb-3 px-2 md:px-5">
+                        <div className="relative w-full px-2 md:px-3 py-2.5 md:py-5 bg-[#e8eef9]">
+                            <div className="max-w-4xl mx-auto text-center">
+                                <h2 className="text-lg sm:text-xl md:text-3xl lg:text-6xl font-serif text-[#8e3e3e] text-center">
+                                    <span className="block">ON THIS DAY</span>
+                                    <span className="text-lg sm:text-base md:text-xl lg:text-3xl block mt-1">in Taylor Swift History</span>
+                                </h2>
+                            </div>
 
-                {/* Circles on the line */}
-                <div className="absolute left-1/2 -translate-x-1/2 top-[0px] w-8 h-8 rounded-full bg-[#6B78B4]"></div>
-                <div className="absolute left-1/2 -translate-x-1/2 top-[268px] w-8 h-8 rounded-full bg-[#FEE6E3] border-4 border-[#6B78B4]"></div>
-                <div className="absolute left-1/2 -translate-x-1/2 top-[528px] w-8 h-8 rounded-full bg-[#FEE6E3] border-4 border-[#6B78B4]"></div>
-                <div className="absolute left-1/2 -translate-x-1/2 top-[790px] w-8 h-8 rounded-full bg-[#FEE6E3] border-4 border-[#6B78B4]"></div>
-                <div className="absolute left-1/2 -translate-x-1/2 top-[1105px] w-8 h-8 rounded-full bg-[#FEE6E3] border-4 border-[#6B78B4]"></div>
-                <div className="absolute left-1/2 -translate-x-1/2 top-[1340px] w-8 h-8 rounded-full bg-[#FEE6E3] border-4 border-[#6B78B4]"></div>
-                <div className="absolute left-1/2 -translate-x-1/2 top-[1620px] w-8 h-8 rounded-full bg-[#6B78B4]"></div>
-              </div>
+                            <div className="absolute left-1 sm:left-2 md:left-3 lg:left-7 top-1/2 transform -translate-y-1/2">
+                                <img
+                                    src="/images/star.png"
+                                    alt="Star"
+                                    className="w-[26px] h-[26px] sm:w-[34px] sm:h-[34px] md:w-[56px] md:h-[56px] lg:w-[85px] lg:h-[85px]"
+                                />
+                            </div>
 
-              {/* Left side content */}
-              <div className="absolute left-[90px] w-[calc(50%-15px)] space-y-[152px] py-64 px-2">
-                <div className="relative mt-[30px] w-[80%]">
-                  <div className="relative">
-                    {/* Background Rectangle Image - Now controls the content height */}
-                    <img
-                      src="/images/leftSide_rectangle.png"
-                      alt="Left Rectangle"
-                      className={`w-full ${records[1]?.fields?.IMAGE?.[0]?.url ? "min-h-[400px]" : "min-h-[255px]"}`}
-                    />
-
-                    {/* Overlay Content - Now constrained to image height */}
-                    <div className="absolute top-0 left-3 p-2 sm:p-3 flex flex-col mr-2 mt-7 w-full max-w-[90%] h-[calc(100%-56px)]">
-                      {/* Date Badge - now with complete date logic */}
-                      <div className={`absolute left-1/2 -translate-x-1/2 -translate-y-1/2 border border-[#8e3e3e] bg-white rounded-full py-1 text-sm text-[#8e3e3e] font-semibold w-fit shadow-md z-10
-                        ${records[1]?.fields?.IMAGE?.[0]?.url ? "top-5" : "top-0"}`}
-                        style={{ minWidth: "140px", paddingLeft: "1rem", paddingRight: "1rem" }}>
-                        {records[1]?.fields?.DATE
-                          ? (() => {
-                              const date = new Date(records[1].fields.DATE);
-                              const options = { month: "long" };
-                              const month = date.toLocaleString("en-US", options);
-                              const day = String(date.getDate()).padStart(2, "0");
-                              const year = date.getFullYear();
-                              return `${month}-${day}-${year}`;
-                            })()
-                          : "Loading..."}
-                      </div>
-
-                      {/* Scrollable Content Area */}
-                      <div className="flex-1 overflow-y-auto pt-8"> {/* Added pt-8 to account for date badge */}
-                        {/* Event Image - unchanged */}
-                        {records[1]?.fields?.IMAGE?.[0]?.url && (
-                          <div className="w-full h-0 pb-[35%] relative rounded-xl overflow-hidden mt-2 max-w-[400px]">
-                            <img
-                              src={records[1].fields.IMAGE[0].url}
-                              alt="Event"
-                              className="absolute inset-0 w-full h-full object-cover object-[center_30%]"
-                            />
-                          </div>
-                        )}
-
-                        {/* Event Description - now with overflow control */}
-                        <h3 className="text-[#8e3e3e] font-bold text-md text-center mt-2 max-w-[400px] mx-auto line-clamp-3">
-                          {records[1]?.fields?.EVENT || "Event description unavailable"}
-                        </h3>
-
-                        {/* Notes - now with overflow control */}
-                        {records[1]?.fields?.NOTES && (
-                          <p className="text-sm text-center font-bold text-black mt-1 max-w-[300px] mx-auto line-clamp-3">
-                            {records[1].fields.NOTES}
-                          </p>
-                        )}
-
-                        {/* Button + Keywords */}
-                        <div className="flex flex-col mt-1 space-y-1 gap-2">
-                          <Button
-                            variant="outline"
-                            className="self-center text-sm border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-2 py-0.5 mt-1"
-                            onClick={() => records[1] && handleReadMore(records[1].id)}
-                          >
-                            Read More →
-                          </Button>
-                          <div className="w-[98%] h-[2px] bg-[#8e3e3e] mt-3 self-center rounded-full"></div>
-                          
-                          {/* Keywords with scroll if needed */}
-                          <div className="flex flex-wrap gap-2 max-h-[100px] overflow-y-auto py-1">
-                            {records[1]?.fields?.KEYWORDS?.map((tag, index) => (
-                              <div
-                                key={index}
-                                className="bg-[#8a9ac7] text-white font-semibold text-sm px-3 py-1 rounded-full whitespace-nowrap"
-                              >
-                                {tag}
-                              </div>
-                            ))}
-                          </div>
+                            <div className="absolute right-1 sm:right-2 md:right-3 lg:right-7 top-1/2 transform -translate-y-1/2">
+                                <img
+                                    src="/images/star.png"
+                                    alt="Star"
+                                    className="w-[26px] h-[26px] sm:w-[34px] sm:h-[34px] md:w-[56px] md:h-[56px] lg:w-[85px] lg:h-[85px]"
+                                />
+                            </div>
                         </div>
-                      </div>
                     </div>
-                  </div>
+
+                    <div className="flex items-center justify-center gap-1 sm:gap-2 md:gap-3 my-2 md:my-3">
+                        <Button
+                            variant="secondary"
+                            className="rounded-full px-2 sm:px-3 md:px-5 text-xs sm:text-sm flex items-center gap-1 md:gap-2 mr-2.5"
+                            onClick={handlePreviousDay}
+                        >
+                            <ChevronLeft size={10} className="md:size-14" />
+                            <span className="hidden sm:inline">Previous Day</span>
+                            <span className="sm:hidden mr-1.5">Prev</span>
+                        </Button>
+
+                        <div className="bg-white rounded-full px-3 sm:px-5 md:px-7 py-1 md:py-1.5 min-w-[102px] sm:min-w-[136px] md:min-w-[170px] border border-[#b66b6b]">
+                            <span className="text-[#8e3e3e] text-sm md:text-base font-medium">
+                                {records.length > 0 && records[0].fields?.DATE ?
+                                    new Date(records[0].fields.DATE).toLocaleDateString('en-US', {
+                                        month: 'long',
+                                        day: 'numeric',
+                                    })
+                                    : "Loading..."}
+                            </span>
+                        </div>
+
+                        <Button
+                            variant="secondary"
+                            className="rounded-full px-2 sm:px-3 md:px-5 text-xs sm:text-sm flex items-center gap-1 md:gap-2 ml-2.5"
+                            onClick={handleNextDay}
+                        >
+                            <span className="hidden sm:inline">Next Day</span>
+                            <span className="sm:hidden ml-1.5">Next</span>
+                            <ChevronRight size={10} className="md:size-14" />
+                        </Button>
+                    </div>
                 </div>
 
-                <div className="absolute top-[660px] w-[80%]">
-                  <div className="relative">
-                    {/* Background Rectangle Image - Now using min-height */}
-                    <img
-                      src="/images/leftSide_rectangle.png"
-                      alt="Left Rectangle"
-                      className={`w-full ${records[3]?.fields?.IMAGE?.[0]?.url ? "min-h-[400px]" : "min-h-[255px]"}`}
-                    />
+                {/* Timeline Section */}
+                <div className="relative mt-5 md:mt-10 mb-3 md:mb-7 flex-grow overflow-hidden">
+                    {/* Mobile Timeline (Single Column) */}
+                    <div className="md:hidden h-[60vh] overflow-y-auto relative mobile-timeline-container">
+                        <div className="relative flex justify-center">
+                            {/* Center line */}
+                            <div className="relative w-[2px] flex flex-col items-center bg-[#e8ecf7]">
+                                <div className="h-[1700px] w-[3px] bg-[#8a9ad4]"></div>
 
-                    {/* Overlay Content - Constrained to image height */}
-                    <div className="absolute top-0 left-3 p-2 sm:p-3 flex flex-col mr-2 mt-7 w-full max-w-[90%] h-[calc(100%-56px)]">
-                      {/* Date Badge - unchanged */}
-                      <div
-                        className={`absolute left-1/2 -translate-x-1/2 -translate-y-1/2 border border-[#8e3e3e] bg-white rounded-full py-1 text-sm text-[#8e3e3e] font-semibold w-fit shadow-md z-10
-                          ${records[3]?.fields?.IMAGE?.[0]?.url ? "top-5" : "top-0"}`}
-                        style={{ minWidth: "140px", paddingLeft: "1rem", paddingRight: "1rem" }}
-                      >
-                        {records[3]?.fields?.DATE
-                          ? (() => {
-                              const date = new Date(records[3].fields.DATE);
-                              const options = { month: "long" };
-                              const month = date.toLocaleString("en-US", options);
-                              const day = String(date.getDate()).padStart(2, "0");
-                              const year = date.getFullYear();
-                              return `${month}-${day}-${year}`;
-                            })()
-                          : "Loading..."}
-                      </div>
+                                {/* Circles on the line */}
+                                <div className="absolute left-1/2 -translate-x-1/2 top-[0px] w-4 h-4 rounded-full bg-[#6B78B4]"></div>
+                                {records.slice(1, 5).map((_, index) => (
+                                    <div key={index} className={`absolute left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#FEE6E3] border-2 border-[#6B78B4]`}
+                                        style={{ top: `${170 + (index * 170)}px` }}></div>
+                                ))}
+                                <div className="absolute left-1/2 -translate-x-1/2 top-[1020px] w-4 h-4 rounded-full bg-[#6B78B4]"></div>
+                            </div>
 
-                      {/* Scrollable Content Area */}
-                      <div className="flex-1 overflow-y-auto pt-8">
-                        {/* Event Image if exists */}
-                        {records[3]?.fields?.IMAGE?.[0]?.url && (
-                          <div className="w-full h-0 pb-[35%] relative rounded-xl overflow-hidden mt-2 max-w-[400px]">
-                            <img
-                              src={records[3].fields.IMAGE[0].url}
-                              alt="Event Image"
-                              className="absolute inset-0 w-full h-full object-cover object-[center_30%]"
-                            />
-                          </div>
-                        )}
-
-                        {/* Event Description with line clamping */}
-                        <h3 className="text-[#8e3e3e] font-bold text-md text-center mt-2 max-w-[400px] mx-auto line-clamp-3">
-                          {records[3]?.fields?.EVENT || "Event description unavailable"}
-                        </h3>
-
-                        {/* Notes with line clamping */}
-                        {records[3]?.fields?.NOTES && (
-                          <p className="text-sm text-center font-bold text-black mt-1 max-w-[300px] mx-auto line-clamp-3">
-                            {records[3].fields.NOTES}
-                          </p>
-                        )}
-
-                        {/* Button + Keywords */}
-                        <div className="flex flex-col mt-1 space-y-1 gap-2">
-                          <Button
-                            variant="outline"
-                            className="self-center text-sm border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-2 py-0.5 mt-1"
-                            onClick={() => records[3] && handleReadMore(records[3].id)}
-                          >
-                            Read More →
-                          </Button>
-                          <div className="w-[98%] h-[2px] bg-[#8e3e3e] mt-3 self-center rounded-full"></div>
-                          
-                          {/* Scrollable Keywords */}
-                          <div className="flex flex-wrap gap-2 max-h-[100px] overflow-y-auto py-1">
-                            {records[3]?.fields?.KEYWORDS?.map((tag, index) => (
-                              <div
-                                key={index}
-                                className="bg-[#8a9ac7] text-white font-semibold text-sm px-3 py-1 rounded-full whitespace-nowrap"
-                              >
-                                {tag}
-                              </div>
-                            ))}
-                          </div>
+                            {/* Mobile Timeline Items */}
+                            <div className="absolute left-[17px] w-[calc(100%-26px)] space-y-[43px] pb-3">
+                                {records.map((record, index) => (
+                                    <TimelineCard record={record} index={index} />
+                                ))}
+                            </div>
                         </div>
-                      </div>
+
+                        {/* Scroll hint */}
+                        {showScrollHint && (
+                            <div className="scroll-hint bottom-0">
+                                <div className="scroll-blur"></div>
+                                <span className="scroll-text">Scroll down</span>
+                            </div>
+                        )}
                     </div>
-                  </div>
+
+                    {/* Desktop Timeline (Single Column with Timeline Visualization) */}
+                    <div className="hidden md:block h-[60vh] overflow-y-auto pr-3 timeline-scroll">
+                        <div className="relative flex justify-center" style={{ transform: `scale(${screenScale})`, transformOrigin: 'top center' }}>
+                            {/* Center line */}
+                            <div className="relative w-[2px] flex flex-col items-center">
+                                <div className="h-[1870px] w-[5px] bg-[#8a9ad4]"></div>
+
+                                {/* Circles on the line */}
+                                <div className="absolute left-1/2 -translate-x-1/2 top-[0px] w-7 h-7 rounded-full bg-[#6B78B4]"></div>
+                                {records.slice(1, 5).map((_, index) => (
+                                    <div key={index} className={`absolute left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-[#FEE6E3] border-3 border-[#6B78B4]`}
+                                        style={{ top: `${228 + (index * 221)}px` }}></div>
+                                ))}
+                                <div className="absolute left-1/2 -translate-x-1/2 top-[2087px] w-7 h-7 rounded-full bg-[#6B78B4]"></div>
+                            </div>
+
+                            {/* Desktop Timeline Items - Centered like mobile */}
+                            <div className="absolute left-[77px] w-[calc(100%-153px)] space-y-[85px] py-15 px-2">
+                                {records.map((record, index) => (
+                                    <div key={index} className="relative" style={{ marginTop: index === 0 ? "0" : "43px" }}>
+                                        <TimelineCard record={record} index={index} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Custom scrollbar */}
+                    <div className="hidden md:block absolute left-8 right-0 top-0 bottom-0 w-2 bg-gradient-to-r from-transparent to-[#e8ecf7]/80 pointer-events-none"></div>
                 </div>
 
-                <div className="absolute top-[1210px] w-[80%]">
-                  <div className="relative">
-                    {/* Background Rectangle Image - Now using min-height */}
-                    <img
-                      src="/images/leftSide_rectangle.png"
-                      alt="Left Rectangle"
-                      className={`w-full ${records[5]?.fields?.IMAGE?.[0]?.url ? "min-h-[400px]" : "min-h-[255px]"}`}
-                    />
-
-                    {/* Overlay Content - Constrained to image height */}
-                    <div className="absolute top-0 left-3 p-2 sm:p-3 flex flex-col mr-2 mt-7 w-full max-w-[90%] h-[calc(100%-56px)]">
-                      {/* Date Badge - unchanged */}
-                      <div
-                        className={`absolute left-1/2 -translate-x-1/2 -translate-y-1/2 border border-[#8e3e3e] bg-white rounded-full py-1 text-sm text-[#8e3e3e] font-semibold w-fit shadow-md z-10
-                          ${records[5]?.fields?.IMAGE?.[0]?.url ? "top-5" : "top-0"}`}
-                        style={{ minWidth: "140px", paddingLeft: "1rem", paddingRight: "1rem" }}
-                      >
-                        {records[5]?.fields?.DATE
-                          ? (() => {
-                              const date = new Date(records[5].fields.DATE);
-                              const options = { month: "long" };
-                              const month = date.toLocaleString("en-US", options);
-                              const day = String(date.getDate()).padStart(2, "0");
-                              const year = date.getFullYear();
-                              return `${month}-${day}-${year}`;
-                            })()
-                          : "Loading..."}
-                      </div>
-
-                      {/* Scrollable Content Area */}
-                      <div className="flex-1 overflow-y-auto pt-8">
-                        {/* Event Image if exists */}
-                        {records[5]?.fields?.IMAGE?.[0]?.url && (
-                          <div className="w-full h-0 pb-[35%] relative rounded-xl overflow-hidden mt-2 max-w-[400px]">
-                            <img
-                              src={records[5].fields.IMAGE[0].url}
-                              alt="Event Image"
-                              className="absolute inset-0 w-full h-full object-cover object-[center_30%]"
-                            />
-                          </div>
-                        )}
-
-                        {/* Event Description with line clamping */}
-                        <h3 className="text-[#8e3e3e] font-bold text-md text-center mt-2 max-w-[400px] mx-auto line-clamp-3">
-                          {records[5]?.fields?.EVENT || "Event description unavailable"}
-                        </h3>
-
-                        {/* Notes with line clamping */}
-                        {records[5]?.fields?.NOTES && (
-                          <p className="text-sm text-center font-bold text-black mt-1 max-w-[300px] mx-auto line-clamp-3">
-                            {records[5].fields.NOTES}
-                          </p>
-                        )}
-
-                        {/* Button + Keywords */}
-                        <div className="flex flex-col mt-1 space-y-1 gap-2">
-                          <Button
-                            variant="outline"
-                            className="self-center text-sm border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-2 py-0.5 mt-1"
-                            onClick={() => records[5] && handleReadMore(records[5].id)}
-                          >
-                            Read More →
-                          </Button>
-                          <div className="w-[98%] h-[2px] bg-[#8e3e3e] mt-3 self-center rounded-full"></div>
-                          
-                          {/* Scrollable Keywords */}
-                          <div className="flex flex-wrap gap-2 max-h-[100px] overflow-y-auto py-1">
-                            {records[5]?.fields?.KEYWORDS?.map((tag, index) => (
-                              <div
-                                key={index}
-                                className="bg-[#8a9ac7] text-white font-semibold text-sm px-3 py-1 rounded-full whitespace-nowrap"
-                              >
-                                {tag}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                <div className="flex justify-center mt-3 md:mt-7">
+                    <Button
+                        variant="secondary"
+                        className="rounded-full px-5 sm:px-10 md:px-17 lg:px-51 py-1.5 w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg"
+                        onClick={() => navigate("/posts")}
+                    >
+                        View Full Timeline
+                    </Button>
                 </div>
-              </div>
-
-              {/* Right side content */}
-              <div className="absolute right-[-3px] w-[calc(50%-15px)] space-y-[76px]">
-                <div className="relative top-[12px] w-[75%] ml-8">
-                  <div className="relative">
-                    {/* Background Rectangle Image - Now using min-height */}
-                    <img
-                      src="/images/rightSide_Rectangle.png"
-                      alt="Right Rectangle"
-                      className={`w-full ${records[0]?.fields?.IMAGE?.[0]?.url ? "min-h-[400px]" : "min-h-[255px]"}`}
-                    />
-
-                    {/* Overlay Content - Constrained to image height */}
-                    <div className="absolute top-0 left-8 p-2 sm:p-3 flex flex-col ml-2 mt-7 w-full max-w-[90%] h-[calc(100%-56px)]">
-                      <div
-                        className={`absolute left-1/2 -translate-x-1/2 -translate-y-1/2 border border-[#8e3e3e] bg-white rounded-full py-1 text-sm text-[#8e3e3e] font-semibold w-fit shadow-md z-10
-                          ${records[0]?.fields?.IMAGE?.[0]?.url ? "top-5" : "top-0"}`}
-                        style={{ minWidth: "140px", paddingLeft: "1rem", paddingRight: "1rem" }}
-                      >
-                        {records[0]?.fields?.DATE
-                          ? (() => {
-                              const date = new Date(records[0].fields.DATE);
-                              const options = { month: "long" };
-                              const month = date.toLocaleString("en-US", options);
-                              const day = String(date.getDate()).padStart(2, "0");
-                              const year = date.getFullYear();
-                              return `${month}-${day}-${year}`;
-                            })()
-                          : "Loading..."}
-                      </div>
-
-                      {/* Scrollable Content Area */}
-                      <div className="flex-1 overflow-y-auto pt-8">
-                        {/* Event Image if exists */}
-                        {records[0]?.fields?.IMAGE?.[0]?.url && (
-                          <div className="w-full h-0 pb-[35%] relative rounded-xl overflow-hidden mt-2 max-w-[400px]">
-                            <img
-                              src={records[0].fields.IMAGE[0].url}
-                              alt="Event Image"
-                              className="absolute inset-0 w-full h-full object-cover object-[center_30%]"
-                            />
-                          </div>
-                        )}
-
-                        {/* Event Description with line clamping */}
-                        <h3 className="text-[#8e3e3e] font-bold text-md text-center mt-2 max-w-[400px] mx-auto line-clamp-3">
-                          {records[0]?.fields?.EVENT || "Event description unavailable"}
-                        </h3>
-
-                        {/* Notes with line clamping */}
-                        {records[0]?.fields?.NOTES && (
-                          <p className="text-sm text-center font-bold text-black mt-1 max-w-[300px] mx-auto line-clamp-3">
-                            {records[0].fields.NOTES}
-                          </p>
-                        )}
-
-                        {/* Button + Keywords */}
-                        <div className="flex flex-col mt-1 space-y-1 gap-2">
-                          <Button
-                            variant="outline"
-                            className="self-center text-sm border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-2 py-0.5 mt-1"
-                            onClick={() => records[0] && handleReadMore(records[0].id)}
-                          >
-                            Read More →
-                          </Button>
-                          <div className="w-[98%] h-[2px] bg-[#8e3e3e] mt-3 self-center rounded-full"></div>
-                          
-                          {/* Scrollable Keywords */}
-                          <div className="flex flex-wrap gap-2 max-h-[100px] overflow-y-auto py-1">
-                            {records[0]?.fields?.KEYWORDS?.map((tag, index) => (
-                              <div
-                                key={index}
-                                className="bg-[#8a9ac7] text-white font-semibold text-sm px-3 py-1 rounded-full whitespace-nowrap"
-                              >
-                                {tag}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="absolute top-[460px] w-[75%] ml-8">
-                  <div className="relative">
-                    {/* Background Rectangle Image - Now using min-height */}
-                    <img
-                      src="/images/rightSide_Rectangle.png"
-                      alt="Right Rectangle"
-                      className={`w-full ${records[2]?.fields?.IMAGE?.[0]?.url ? "min-h-[400px]" : "min-h-[255px]"}`}
-                    />
-
-                    {/* Overlay Content - Constrained to image height */}
-                    <div className="absolute top-0 left-8 p-2 sm:p-3 flex flex-col ml-2 mt-7 w-full max-w-[90%] h-[calc(100%-56px)]">
-                      <div
-                        className={`absolute left-1/2 -translate-x-1/2 -translate-y-1/2 border border-[#8e3e3e] bg-white rounded-full py-1 text-sm text-[#8e3e3e] font-semibold w-fit shadow-md z-10
-                          ${records[2]?.fields?.IMAGE?.[0]?.url ? "top-5" : "top-0"}`}
-                        style={{ minWidth: "140px", paddingLeft: "1rem", paddingRight: "1rem" }}
-                      >
-                        {records[2]?.fields?.DATE
-                          ? (() => {
-                              const date = new Date(records[2].fields.DATE);
-                              const options = { month: "long" };
-                              const month = date.toLocaleString("en-US", options);
-                              const day = String(date.getDate()).padStart(2, "0");
-                              const year = date.getFullYear();
-                              return `${month}-${day}-${year}`;
-                            })()
-                          : "Loading..."}
-                      </div>
-
-                      {/* Scrollable Content Area */}
-                      <div className="flex-1 overflow-y-auto pt-8">
-                        {/* Event Image if exists */}
-                        {records[2]?.fields?.IMAGE?.[0]?.url && (
-                          <div className="w-full h-0 pb-[35%] relative rounded-xl overflow-hidden mt-2 max-w-[400px]">
-                            <img
-                              src={records[2].fields.IMAGE[0].url}
-                              alt="Event Image"
-                              className="absolute inset-0 w-full h-full object-cover object-[center_30%]"
-                            />
-                          </div>
-                        )}
-
-                        {/* Event Description with line clamping */}
-                        <h3 className="text-[#8e3e3e] font-bold text-md text-center mt-2 max-w-[400px] mx-auto line-clamp-3">
-                          {records[2]?.fields?.EVENT || "Event description unavailable"}
-                        </h3>
-
-                        {/* Notes with line clamping */}
-                        {records[2]?.fields?.NOTES && (
-                          <p className="text-sm text-center font-bold text-black mt-1 max-w-[300px] mx-auto line-clamp-3">
-                            {records[2].fields.NOTES}
-                          </p>
-                        )}
-
-                        {/* Button + Keywords */}
-                        <div className="flex flex-col mt-1 space-y-1 gap-2">
-                          <Button
-                            variant="outline"
-                            className="self-center text-sm border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-2 py-0.5 mt-1"
-                            onClick={() => records[2] && handleReadMore(records[2].id)}
-                          >
-                            Read More →
-                          </Button>
-                          <div className="w-[98%] h-[2px] bg-[#8e3e3e] mt-3 self-center rounded-full"></div>
-                          
-                          {/* Scrollable Keywords */}
-                          <div className="flex flex-wrap gap-2 max-h-[100px] overflow-y-auto py-1">
-                            {records[2]?.fields?.KEYWORDS?.map((tag, index) => (
-                              <div
-                                key={index}
-                                className="bg-[#8a9ac7] text-white font-semibold text-sm px-3 py-1 rounded-full whitespace-nowrap"
-                              >
-                                {tag}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="absolute top-[1040px] w-[75%] ml-8">
-                  <div className="relative">
-                    {/* Background Rectangle Image - Now using min-height */}
-                    <img
-                      src="/images/rightSide_Rectangle.png"
-                      alt="Right Rectangle"
-                      className={`w-full ${records[4]?.fields?.IMAGE?.[0]?.url ? "min-h-[400px]" : "min-h-[255px]"}`}
-                    />
-
-                    {/* Overlay Content - Constrained to image height */}
-                    <div className="absolute top-0 left-8 p-2 sm:p-3 flex flex-col ml-2 mt-7 w-full max-w-[90%] h-[calc(100%-56px)]">
-                      <div
-                        className={`absolute left-1/2 -translate-x-1/2 -translate-y-1/2 border border-[#8e3e3e] bg-white rounded-full py-1 text-sm text-[#8e3e3e] font-semibold w-fit shadow-md z-10
-                          ${records[4]?.fields?.IMAGE?.[0]?.url ? "top-5" : "top-0"}`}
-                        style={{ minWidth: "140px", paddingLeft: "1rem", paddingRight: "1rem" }}
-                      >
-                        {records[4]?.fields?.DATE
-                          ? (() => {
-                              const date = new Date(records[4].fields.DATE);
-                              const options = { month: "long" };
-                              const month = date.toLocaleString("en-US", options);
-                              const day = String(date.getDate()).padStart(2, "0");
-                              const year = date.getFullYear();
-                              return `${month}-${day}-${year}`;
-                            })()
-                          : "Loading..."}
-                      </div>
-
-                      {/* Scrollable Content Area */}
-                      <div className="flex-1 overflow-y-auto pt-8">
-                        {/* Event Image if exists */}
-                        {records[4]?.fields?.IMAGE?.[0]?.url && (
-                          <div className="w-full h-0 pb-[35%] relative rounded-xl overflow-hidden mt-2 max-w-[400px]">
-                            <img
-                              src={records[4].fields.IMAGE[0].url}
-                              alt="Event Image"
-                              className="absolute inset-0 w-full h-full object-cover object-[center_30%]"
-                            />
-                          </div>
-                        )}
-
-                        {/* Event Description with line clamping */}
-                        <h3 className="text-[#8e3e3e] font-bold text-md text-center mt-2 max-w-[400px] mx-auto line-clamp-3">
-                          {records[4]?.fields?.EVENT || "Event description unavailable"}
-                        </h3>
-
-                        {/* Notes with line clamping */}
-                        {records[4]?.fields?.NOTES && (
-                          <p className="text-sm text-center font-bold text-black mt-1 max-w-[300px] mx-auto line-clamp-3">
-                            {records[4].fields.NOTES}
-                          </p>
-                        )}
-
-                        {/* Button + Keywords */}
-                        <div className="flex flex-col mt-1 space-y-1 gap-2">
-                          <Button
-                            variant="outline"
-                            className="self-center text-sm border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full px-2 py-0.5 mt-1"
-                            onClick={() => records[4] && handleReadMore(records[4].id)}
-                          >
-                            Read More →
-                          </Button>
-                          <div className="w-[98%] h-[2px] bg-[#8e3e3e] mt-3 self-center rounded-full"></div>
-                          
-                          {/* Scrollable Keywords */}
-                          <div className="flex flex-wrap gap-2 max-h-[100px] overflow-y-auto py-1">
-                            {records[4]?.fields?.KEYWORDS?.map((tag, index) => (
-                              <div
-                                key={index}
-                                className="bg-[#8a9ac7] text-white font-semibold text-sm px-3 py-1 rounded-full whitespace-nowrap"
-                              >
-                                {tag}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
-          </div>
-
-          {/* Custom scrollbar */}
-          <div className="hidden md:block absolute left-10 right-0 top-0 bottom-0 w-2 bg-gradient-to-r from-transparent to-[#e8ecf7]/80 pointer-events-none"></div>
-        </div>
-
-        <div className="flex justify-center mt-4 md:mt-8">
-          <Button
-            variant="secondary"
-            className="rounded-full px-6 sm:px-12 md:px-20 lg:px-60 py-2 w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg"
-            onClick={() => navigate("/posts")}
-          >
-            View Full Timeline
-          </Button>
-        </div>
-      </div>
-    </section>
-  )
+        </section>
+    )
 }

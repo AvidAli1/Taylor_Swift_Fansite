@@ -13,9 +13,13 @@ export default function SearchResults() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // Handle read more functionality
   const handleReadMore = (postId) => {
     navigate(`/post_details?id=${postId}`)
+  }
+
+  const handleTagClick = (e, keyword) => {
+    e.stopPropagation()
+    navigate(`/posts?keyword=${encodeURIComponent(keyword)}`)
   }
 
   // Fetch search results from Airtable
@@ -57,7 +61,6 @@ export default function SearchResults() {
     fetchSearchResults()
   }, [query])
 
-  // Clear search function
   const clearSearch = () => {
     navigate('/')
   }
@@ -162,89 +165,78 @@ export default function SearchResults() {
 
         {/* Search Results Grid */}
         {results.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-4 mb-10">
-            {results.map((record, index) => (
-            <div key={record.id || index} className="bg-[#fce0e0] rounded-[18px] shadow-md p-3 md:p-4 hover:shadow-lg transition-shadow duration-200">
-                
-                {/* Year Badge */}
-                <div className="bg-[#8a9ad4] rounded-full px-3 py-1 text-sm text-white font-semibold inline-block mb-3">
-                {record?.fields?.DATE
-                    ? new Date(record.fields.DATE).getFullYear()
-                    : "Unknown Year"}
-                </div>
-
-                {/* Image */}
-                <div className="w-full h-[130px] relative rounded-lg overflow-hidden mb-3">
-                {record?.fields?.IMAGE?.[0]?.url ? (
-                    <img
-                    src={record.fields.IMAGE[0].url}
-                    alt="Taylor Swift Event"
-                    className="absolute inset-0 w-full h-full object-cover object-[center_35%]"
-                    />
-                ) : (
-                    <div className="absolute inset-0 w-full h-full" />
-                )}
-                </div>
-
-                {/* Event Title */}
-                <h3 className="text-[#8e3e3e] font-medium text-sm md:text-base mb-2 line-clamp-2 min-h-[40px]">
-                {record?.fields?.EVENT || 'Event description unavailable'}
-                </h3>
-
-                {/* Date */}
-                {record?.fields?.DATE && (
-                <p className="text-[#8a9ad4] text-sm mb-2 font-medium">
-                    {new Date(record.fields.DATE).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                    })}
-                </p>
-                )}
-
-                {/* Keywords */}
-                {record?.fields?.KEYWORDS && record.fields.KEYWORDS.length > 0 && (
-                <div className="mb-2">
-                    <div className="flex flex-wrap gap-1 mb-1">
-                    {record.fields.KEYWORDS.slice(0, 2).map((keyword, keyIndex) => (
-                        <span
-                        key={keyIndex}
-                        className="bg-[#e8eef9] text-[#6B78B4] text-xs px-2 py-1 rounded-full"
-                        >
-                        {keyword}
-                        </span>
-                    ))}
-                    {record.fields.KEYWORDS.length > 2 && (
-                        <span className="text-[#8a9ad4] text-xs px-1 py-0.5">
-                        +{record.fields.KEYWORDS.length - 2}
-                        </span>
-                    )}
-                    </div>
-                </div>
-                )}
-
-                {/* Category/Album */}
-                {(record?.fields?.CATEGORY || record?.fields?.ALBUM) && (
-                <p className="text-[#8a9ad4] text-sm mb-2 font-medium truncate">
-                    {record.fields.CATEGORY || record.fields.ALBUM}
-                </p>
-                )}
-
-                {/* Read More Button */}
-                <Button
-                variant="outline"
-                className="w-full text-sm border-[#8e3e3e] text-[#8e3e3e] hover:bg-[#8e3e3e] hover:text-white rounded-full py-1.5"
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-10">
+            {results.map((record) => (
+              <div 
+                key={record.id} 
+                className="bg-[#ffe8e8] rounded-xl overflow-hidden border border-[#ffcaca] flex flex-col hover:shadow-lg transition-shadow duration-200 cursor-pointer h-80"
                 onClick={() => handleReadMore(record.id)}
-                >
-                Read More →
-                </Button>
-            </div>
+              >
+                <div className="relative pt-1 h-48 flex flex-col">
+                  {/* Date Badge */}
+                  <div className="absolute -top-0.1 left-1/2 transform -translate-x-1/2 bg-white text-[#b91c1c] text-xs font-medium px-2 py-1 rounded-full z-10 min-w-[102px] text-center">
+                    {record?.fields?.DATE
+                      ? new Date(record.fields.DATE).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: '2-digit',
+                          year: 'numeric'
+                        })
+                      : 'No date'}
+                  </div>
+
+                  {/* Title */}
+                  <div className="px-4 pt-6 pb-2 mt-2 mb-2">
+                    <h3 className="text-[#b91c1c] font-medium text-sm text-center line-clamp-2">
+                      {record?.fields?.EVENT || 'Untitled Event'}
+                    </h3>
+                  </div>
+
+                  {/* Image */}
+                  <div className="w-[90%] h-32 mx-auto rounded-[3%] flex items-center justify-center">
+                    {record?.fields?.IMAGE?.[0]?.url && (
+                      <img
+                        src={record.fields.IMAGE[0].url}
+                        alt={record.fields.EVENT || 'Event image'}
+                        className="w-full h-full object-cover object-[center_30%] rounded-[3%]"
+                      />
+                    )}
+                  </div>
+                </div>
+
+                <div className="p-4 flex flex-col flex-grow">
+                  {/* Notes */}
+                  {record?.fields?.NOTES && (
+                    <p className="text-[#6b7db3] text-xs mb-2 line-clamp-2">
+                      {record.fields.NOTES}
+                    </p>
+                  )}
+
+                  {/* Tags */}
+                  <div className="mt-auto">
+                    <div className="flex flex-wrap gap-2">
+                      {record?.fields?.KEYWORDS?.slice(0, 3).map((keyword, index) => (
+                        <span
+                          key={index}
+                          className="bg-[#8a9ac7] text-white text-[10px] px-1.5 py-0.5 rounded-full whitespace-nowrap cursor-pointer hover:bg-[#6b7db3] transition-colors"
+                          onClick={(e) => handleTagClick(e, keyword)}
+                        >
+                          {keyword}
+                        </span>
+                      ))}
+                      {record?.fields?.KEYWORDS?.length > 3 && (
+                        <span className="bg-gray-300 text-gray-600 text-[10px] px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                          +{record.fields.KEYWORDS.length - 3}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
             ))}
-        </div>
+          </div>
         )}
 
-
-        {/* Load More Button (if you want to implement pagination later) */}
+        {/* Load More Button */}
         {results.length >= 50 && (
           <div className="text-center">
             <p className="text-[#8a9ad4] text-sm mb-4">

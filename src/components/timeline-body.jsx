@@ -4,6 +4,48 @@ import { useState, useEffect } from "react"
 import axios from "axios"
 import { useNavigate, useLocation } from 'react-router-dom';
 
+// Hardcoded list of all keywords
+const ALL_KEYWORDS = [
+  "112 Day Theory", "1989", "1989 Tour", "Aaron Dessner", "Abigail Anderson", 
+  "Acoustic Song Mess-Up", "Album Announcement", "Album Release", "Amsterdam", 
+  "Ashley Avignone", "Award Show", "Awards", "Behind the scenes / Filming", 
+  "Benefit Event", "Beyonce", "Blake Lively", "Brand Deals / Merch", 
+  "Bug Swallow - Eras Tour", "Calvin Harris", "Cara Delevigne", "Career Event", 
+  "Cats Movie", "Charity / Altruism", "Chiefs Game", "Choreo Error", 
+  "Claire Winter", "Commercial", "Competition Show", "Concert Film", 
+  "Conor Kennedy", "Cory Monteith", "Cover Songs", "Debut", "Demi Lovato", 
+  "Dianna Agron", "Documentary", "Ed Sheeran", "Ellen", "Emily Poe", 
+  "Emma Stone", "Equipment Malfunction", "Evil Eye Jewelry", 
+  "Fan Interactions & Surprises", "Fearless", "Fearless Tour", 
+  "Features / Cameos", "Feuds / Gossip / Drama", "Full Moon", "GMA", 
+  "Gigi Hadid", "Girl Squad", "Gold Neck Tattoo", "Grammy's", "HAIM", 
+  "Hannah Montana: The Movie", "Harry Styles", "Hayley Williams", "Ice Spice", 
+  "Infinity Bracelet", "J Necklace", "Jack Antonoff", "Jake Gyllenhall", 
+  "Jingle Ball", "Joe Alwyn", "Joe Jonas", "John Mayer", "Journal Entry", 
+  "July 4th Parties", "Kanye West", "Karlie Kloss", "Katy Perry", 
+  "Keleigh Teller", "LGBTQ", "Life Event", "Lily Aldridge", "Lily Donaldson", 
+  "Live Performances", "Liz Huett", "Lorde", "Lover", "Lyric Change", 
+  "Magazine Interview / Cover", "Martin Johnson", "Masters Drama", "Matt Healy", 
+  "Merchandise Release", "Meredith / Olivia / Benjamin", "Met Gala", "Midnights", 
+  "Miley Cyrus", "Miscellaneous Events", "Miss Americana", "Movie Release", 
+  "Music Industry Drama", "Music Release", "Music Video Release", "Myspace Blog", 
+  "New Eras Tour Outfit Variant", "Olivia Rodrigo", "Pap Walk / Sighting", 
+  "Paul McCartney", "Plane Travel", "Politics", "Product Release", "Radio Show", 
+  "Rain Show", "Real Estate", "Recording Studio", "Red", "Red Tour", "Reputation", 
+  "Reputation Tour", "SNL", "Sabrina Carpenter", "Sapphire Evil Eye Ring", 
+  "Scissor Jewelry", "Secret Sessions", "Selena Gomez", "Setlist Change", 
+  "Sexual Assault Trial", "Social Media Activity", "Social Media Post", 
+  "Songwriting", "Sophie Turner", "Soundtrack", "Speak Now", "Speak Now Tour", 
+  "Special Guest", "Stevie Nicks", "TNT Bracelet", "TS12 Potential Easter Eggs", 
+  "TTPD", "TV / Streaming Special", "TV / Web Interview", "TV Show Appearances", 
+  "Talk Show", "Taylor Lautner", "Taylor Nation Post", "Taylor's Birthday", 
+  "The Eras Tour", "The Errors Tour", "The Giver", "The Lorax", "Tiny Braid", 
+  "Tom Hiddleston", "Travis Kelce", "Tree Paine", "Unique Tour Occurence", 
+  "VSFS Ring", "Vacation", "Valentine's Day (Movie)", 
+  "Victoria's Secret Fashion Show", "Vlog", "Wardrobe Malfunction", "White Wine", 
+  "Will Anderson", "Wizard of Oz", "Zoe Kravitz", "evermore", "folklore"
+];
+
 export default function TimelineBody() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -16,14 +58,13 @@ export default function TimelineBody() {
 
   // Filter states
   const [sortOrder, setSortOrder] = useState("asc")
-  const [filterKeywords, setFilterKeywords] = useState([]) // Changed to array
+  const [filterKeywords, setFilterKeywords] = useState([])
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
   const [monthDay, setMonthDay] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
-
-  // Available keywords for dropdown
-  const [allKeywords, setAllKeywords] = useState([])
+  
+  // Missing state variable - FIXED
   const [showKeywordDropdown, setShowKeywordDropdown] = useState(false)
 
   // Store pagination history
@@ -51,45 +92,27 @@ export default function TimelineBody() {
     resetPagination();
   };
 
-  // Fetch all keywords for dropdown
-  const fetchAllKeywords = async () => {
-    try {
-      const response = await axios.get(
-        "https://api.airtable.com/v0/appVhtDyx0VKlGbhy/Taylor%20Swift%20Master%20Tracker",
-        {
-          headers: {
-            Authorization: `Bearer ${import.meta.env.VITE_AIRTABLE_API_KEY}`,
-          },
-          params: {
-            maxRecords: 1000,
-            fields: ['KEYWORDS'],
-            view: "Grid view",
-          },
-        }
-      )
-
-      const keywordSet = new Set()
-      response.data.records.forEach(record => {
-        if (record.fields.KEYWORDS) {
-          record.fields.KEYWORDS.forEach(keyword => {
-            keywordSet.add(keyword)
-          })
-        }
-      })
-
-      setAllKeywords(Array.from(keywordSet).sort())
-    } catch (error) {
-      console.error("Error fetching keywords:", error)
-    }
-  }
-
-  // Fetch keywords on component mount
+  // Update the useEffect that reads URL parameters
   useEffect(() => {
-    fetchAllKeywords()
-  }, [])
+    const urlParams = new URLSearchParams(location.search);
+    const queryFromUrl = urlParams.get('q');
+    const keywordFromUrl = urlParams.get('keyword');
 
-  // Helper function to escape quotes
-  const escapeQuotes = (str) => str.replace(/"/g, '\\"').replace(/'/g, "\\'");
+    if (keywordFromUrl) {
+      setFilterKeywords([keywordFromUrl]);
+      setSearchQuery('');
+      setStartDate('');
+      setEndDate('');
+      setMonthDay('');
+      resetPagination();
+
+      // Clean up URL after applying the filter
+      urlParams.delete('keyword');
+      navigate(`?${urlParams.toString()}`, { replace: true });
+    } else if (queryFromUrl) {
+      setSearchQuery(queryFromUrl);
+    }
+  }, [location.search, navigate]);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -118,30 +141,25 @@ export default function TimelineBody() {
         // Improved keyword filter (multi-select)
         if (filterKeywords.length > 0) {
           const keywordFilters = filterKeywords.map(keyword => {
-            const escapedKeyword = escapeQuotes(keyword);
-            return `FIND(LOWER('${escapedKeyword.toLowerCase()}'), LOWER({KEYWORDS})) > 0`;
+            return `FIND('${keyword}', ARRAYJOIN({KEYWORDS}, ',')) > 0`;
           }).join(',');
           filterFormula = filterFormula
             ? `AND(${filterFormula}, OR(${keywordFilters}))`
             : `OR(${keywordFilters})`;
         }
 
-
-        // Improved search functionality
+        // Capitalize first letter for search query
         if (searchQuery.trim()) {
-          const escapedQuery = escapeQuotes(searchQuery.trim());
-          const searchTerms = escapedQuery.split(/\s+/).filter(term => term.length > 0);
+          // Capitalize the first letter of the search query
+          const capitalizedQuery = searchQuery.trim().charAt(0).toUpperCase() + searchQuery.trim().slice(1);
 
-          const searchFilters = searchTerms.map(term => {
-            const lowerTerm = term.toLowerCase();
-            return `OR(
-              FIND('${lowerTerm}', LOWER({EVENT})) > 0,
-              FIND('${lowerTerm}', LOWER({LOCATION})) > 0,
-              FIND('${lowerTerm}', LOWER({CATEGORY})) > 0
-            )`;
-          }).join(',');
+          const searchFilter = `OR(
+            FIND('${capitalizedQuery}', {EVENT}) > 0,
+            FIND('${capitalizedQuery}', {LOCATION}) > 0,
+            FIND('${capitalizedQuery}', {CATEGORY}) > 0,
+            FIND('${capitalizedQuery}', ARRAYJOIN({KEYWORDS}, ',')) > 0
+          )`;
 
-          const searchFilter = `AND(${searchFilters})`;
           filterFormula = filterFormula
             ? `AND(${filterFormula}, ${searchFilter})`
             : searchFilter;
@@ -156,7 +174,6 @@ export default function TimelineBody() {
               Authorization: `Bearer ${import.meta.env.VITE_AIRTABLE_API_KEY}`,
             },
             params: {
-              maxRecords: 100,
               pageSize: recordsPerPage,
               offset: currentOffset,
               filterByFormula: filterFormula || undefined,
@@ -228,11 +245,15 @@ export default function TimelineBody() {
     resetPagination()
   }
 
-  // Updated search handlers
+  // Capitalize first letter before redirecting
   const handleSearch = (e) => {
     e.preventDefault()
     if (searchQuery.trim()) {
-      navigate(`/?q=${encodeURIComponent(searchQuery.trim())}`)
+      // Capitalize the first letter before navigating
+      const capitalizedQuery = searchQuery.trim().charAt(0).toUpperCase() + searchQuery.trim().slice(1);
+      navigate(`/?q=${encodeURIComponent(capitalizedQuery)}`)
+    } else {
+      navigate('/')
     }
     resetPagination()
   }
@@ -312,7 +333,7 @@ export default function TimelineBody() {
                 >
                   Clear All Filters
                 </button>
-                {allKeywords.map((keyword, index) => (
+                {ALL_KEYWORDS.map((keyword, index) => (
                   <div key={index} className="flex items-center px-3 py-2">
                     <input
                       type="checkbox"
@@ -442,7 +463,7 @@ export default function TimelineBody() {
 
       {/* Posts Grid */}
       {!loading && (
-        <div className="max-w-6xl mx-auto px-4">
+        <div className="max-w-6xl sm:max-w-[90%] mx-auto px-4">
           {posts.length === 0 ? (
             <div className="text-center py-12 text-[#b91c1c]">
               No posts found matching your criteria. Try different filters.
@@ -482,9 +503,9 @@ export default function TimelineBody() {
                   <div className="p-4 flex flex-col flex-grow">
                     {/* Notes */}
                     {post.notes && (
-                      <p className="text-[#6b7db3] text-xs mb-2 line-clamp-2">
+                      <div className="text-[#6b7db3] text-xs mb-2 line-clamp-2 whitespace-pre-line">
                         {post.notes}
-                      </p>
+                      </div>
                     )}
 
                     {/* Clickable tags */}
