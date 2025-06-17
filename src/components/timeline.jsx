@@ -335,26 +335,48 @@ export default function Timeline() {
                         )}
                     </div>
 
-                    {/* Desktop Timeline (Single Column with Timeline Visualization) */}
-                    <div className="hidden md:block h-[60vh] overflow-y-auto pr-3 timeline-scroll">
+                    {/* Desktop Timeline */}
+                    <div className="hidden md:block h-[50vh] overflow-y-auto pr-3 timeline-scroll ">
                         <div className="relative flex justify-center" style={{ transform: `scale(${screenScale})`, transformOrigin: 'top center' }}>
-                            {/* Center line */}
-                            <div className="relative w-[2px] flex flex-col items-center">
-                                <div className="h-[1870px] w-[5px] bg-[#8a9ad4]"></div>
+                            {/* Center line - dynamically calculated height */}
+                            <div className="absolute w-[2px] flex flex-col items-center">
+                                <div 
+                                    className="w-[5px] bg-[#8a9ad4]" 
+                                    style={{ 
+                                        height: records.length > 0 
+                                            ? `${(records.length * 280) + ((records.length - 1) * 200)}px` 
+                                            : '0px' 
+                                    }}
+                                ></div>
 
-                                {/* Circles on the line */}
-                                <div className="absolute left-1/2 -translate-x-1/2 top-[0px] w-7 h-7 rounded-full bg-[#6B78B4]"></div>
-                                {records.slice(1, 5).map((_, index) => (
-                                    <div key={index} className={`absolute left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-[#FEE6E3] border-3 border-[#6B78B4]`}
-                                        style={{ top: `${228 + (index * 221)}px` }}></div>
-                                ))}
-                                <div className="absolute left-1/2 -translate-x-1/2 top-[2087px] w-7 h-7 rounded-full bg-[#6B78B4]"></div>
+                                {/* Circles on the line - dynamically positioned */}
+                                {records.map((_, index) => {
+                                    const topPosition = index * 577;
+                                    return (
+                                        <div 
+                                            key={index} 
+                                            className={`absolute left-1/2 -translate-x-1/2 w-7 h-7 rounded-full 
+                                                ${index === 0 || index === records.length - 1 
+                                                    ? 'bg-[#6B78B4]' 
+                                                    : 'bg-[#FEE6E3] border-3 border-[#6B78B4]'}`}
+                                            style={{ top: `${topPosition}px` }}
+                                        ></div>
+                                    );
+                                })}
                             </div>
 
-                            {/* Desktop Timeline Items - Centered like mobile */}
-                            <div className="absolute left-[77px] w-[calc(100%-153px)] space-y-[85px] py-15 px-2">
+                            {/* Desktop Timeline Items - with 8% size increase */}
+                            <div className="absolute left-[77px] w-[calc(100%-153px)]">
                                 {records.map((record, index) => (
-                                    <div key={index} className="relative" style={{ marginTop: index === 0 ? "0" : "43px" }}>
+                                    <div 
+                                        key={index} 
+                                        className="relative transition-all duration-300"
+                                        style={{ 
+                                            marginTop: index === 0 ? "0" : "190px",
+                                            transform: 'scale(1.20)',
+                                            transformOrigin: 'top center'
+                                        }}
+                                    >
                                         <TimelineCard record={record} index={index} />
                                     </div>
                                 ))}
