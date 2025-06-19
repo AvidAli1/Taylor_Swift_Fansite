@@ -7,7 +7,7 @@ export default function Footer() {
         {/* Background Image */}
         <div className="relative w-full h-[340px]">
           <img
-            src="/images/taylor_swift_background.png"
+            src="/images/taylor_swift_background.jpg"
             alt="Taylor Swift Background"
             className="absolute inset-0 w-full h-full object-cover object-[center_20%]"
           />
