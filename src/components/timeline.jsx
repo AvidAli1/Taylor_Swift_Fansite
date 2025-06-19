@@ -167,7 +167,7 @@ export default function Timeline() {
                     <div className="bg-gradient-to-br from-[#fce0e0] to-[#f8d7da] rounded-[13px] shadow-lg border border-[#e8c5c8] p-1">
                         <div className="bg-white/80 backdrop-blur-sm rounded-[10px] p-3 border border-[#f0d0d3]">
                             {/* Date Badge */}
-                            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 border border-[#8e3e3e] bg-white rounded-full px-3 py-0.5 text-xs text-[#8e3e3e] font-semibold shadow-md z-10 min-w-[102px] text-center">
+                            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 -translate-y-1/4 border border-[#8e3e3e] bg-white rounded-full px-3 py-1 text-sm text-[#8e3e3e] font-semibold shadow-md z-10 min-w-[150px] text-center">
                                 {record?.fields?.DATE
                                     ? (() => {
                                         const date = new Date(record.fields.DATE);
@@ -181,6 +181,11 @@ export default function Timeline() {
                             </div>
 
                             <div className="flex flex-col gap-2.5 mt-1.5">
+                                {/* Event Description */}
+                                <h3 className="text-[#8e3e3e] font-bold text-sm md:text-base leading-relaxed text-center">
+                                    {record?.fields?.EVENT || 'Event description unavailable'}
+                                </h3>
+
                                 {/* Event Image - Empty space reserved even when no image */}
                                 <div className="w-full h-[119px] md:h-[170px] relative rounded-xl overflow-hidden shadow-md">
                                     {record?.fields?.IMAGE?.[0]?.url ? (
@@ -192,10 +197,6 @@ export default function Timeline() {
                                     ) : null}
                                 </div>
 
-                                {/* Event Description */}
-                                <h3 className="text-[#8e3e3e] font-bold text-sm md:text-base leading-relaxed text-center">
-                                    {record?.fields?.EVENT || 'Event description unavailable'}
-                                </h3>
 
                                 {/* Notes */}
                                 {record?.fields?.NOTES && (
@@ -312,8 +313,11 @@ export default function Timeline() {
                                 {/* Circles on the line */}
                                 <div className="absolute left-1/2 -translate-x-1/2 top-[0px] w-4 h-4 rounded-full bg-[#6B78B4]"></div>
                                 {records.slice(1, 5).map((_, index) => (
-                                    <div key={index} className={`absolute left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#FEE6E3] border-2 border-[#6B78B4]`}
-                                        style={{ top: `${170 + (index * 170)}px` }}></div>
+                                    <div
+                                        key={`mobile-circle-${index}`}
+                                        className={`absolute left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#FEE6E3] border-2 border-[#6B78B4]`}
+                                        style={{ top: `${170 + (index * 170)}px` }}
+                                    ></div>
                                 ))}
                                 <div className="absolute left-1/2 -translate-x-1/2 top-[1020px] w-4 h-4 rounded-full bg-[#6B78B4]"></div>
                             </div>
@@ -321,7 +325,7 @@ export default function Timeline() {
                             {/* Mobile Timeline Items */}
                             <div className="absolute left-[17px] w-[calc(100%-26px)] space-y-[43px] pb-3">
                                 {records.map((record, index) => (
-                                    <TimelineCard record={record} index={index} />
+                                    <TimelineCard key={`mobile-${record.id}`} record={record} index={index} />
                                 ))}
                             </div>
                         </div>
@@ -335,29 +339,29 @@ export default function Timeline() {
                         )}
                     </div>
 
-                    {/* Desktop Timeline */}
-                    <div className="hidden md:block h-[50vh] overflow-y-auto pr-3 timeline-scroll ">
-                        <div className="relative flex justify-center" style={{ transform: `scale(${screenScale})`, transformOrigin: 'top center' }}>
+                    {/* Desktop Timeline - Fixed Version */}
+                    <div className="hidden md:block h-[50vh] overflow-y-auto overflow-x-hidden pr-3 timeline-scroll">
+                        <div className="relative flex justify-center">
                             {/* Center line - dynamically calculated height */}
                             <div className="absolute w-[2px] flex flex-col items-center">
-                                <div 
-                                    className="w-[5px] bg-[#8a9ad4]" 
-                                    style={{ 
-                                        height: records.length > 0 
-                                            ? `${(records.length * 280) + ((records.length - 1) * 200)}px` 
-                                            : '0px' 
+                                <div
+                                    className="w-[5px] bg-[#8a9ad4]"
+                                    style={{
+                                        height: records.length > 0
+                                            ? `${(records.length * 220) + ((records.length - 1) * 200)}px`
+                                            : '0px'
                                     }}
                                 ></div>
 
                                 {/* Circles on the line - dynamically positioned */}
                                 {records.map((_, index) => {
-                                    const topPosition = index * 577;
+                                    const topPosition = index * 504;
                                     return (
-                                        <div 
-                                            key={index} 
+                                        <div
+                                            key={`desktop-circle-${index}`}
                                             className={`absolute left-1/2 -translate-x-1/2 w-7 h-7 rounded-full 
-                                                ${index === 0 || index === records.length - 1 
-                                                    ? 'bg-[#6B78B4]' 
+                  ${index === 0 || index === records.length - 1
+                                                    ? 'bg-[#6B78B4]'
                                                     : 'bg-[#FEE6E3] border-3 border-[#6B78B4]'}`}
                                             style={{ top: `${topPosition}px` }}
                                         ></div>
@@ -365,19 +369,19 @@ export default function Timeline() {
                                 })}
                             </div>
 
-                            {/* Desktop Timeline Items - with 8% size increase */}
-                            <div className="absolute left-[77px] w-[calc(100%-153px)]">
+                            {/* Desktop Timeline Items */}
+                            <div className="absolute left-1/2 -translate-x-1/4 w-3/4">
                                 {records.map((record, index) => (
-                                    <div 
-                                        key={index} 
+                                    <div
+                                        key={`desktop-${record.id}`}
                                         className="relative transition-all duration-300"
-                                        style={{ 
-                                            marginTop: index === 0 ? "0" : "190px",
-                                            transform: 'scale(1.20)',
-                                            transformOrigin: 'top center'
+                                        style={{
+                                            marginTop: index === 0 ? "0" : "140px",
                                         }}
                                     >
-                                        <TimelineCard record={record} index={index} />
+                                        <div className="transform scale-[1.10] origin-top -translate-x-1/4">
+                                            <TimelineCard record={record} index={index} />
+                                        </div>
                                     </div>
                                 ))}
                             </div>
