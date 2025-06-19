@@ -29,13 +29,14 @@ export default function Footer() {
 
         {/* Ad Placement */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white/90 p-5 rounded-lg text-center">
-          <ins className="adsbygoogle"
-            style={{ display: 'block' }}
-            data-ad-client="ca-pub-4534610257929133"
-            data-ad-slot="3327797457"
-            data-ad-format="auto"
-            data-full-width-responsive="true"
-          ></ins>
+          {process.env.NODE_ENV === 'production' && (
+            <ins className="adsbygoogle"
+              style={{ display: 'block' }}
+              data-ad-client="ca-pub-4534610257929133"
+              data-ad-slot="3327797457"
+              data-ad-format="auto"
+              data-full-width-responsive="true"></ins>
+          )}
         </div>
       </div>
 

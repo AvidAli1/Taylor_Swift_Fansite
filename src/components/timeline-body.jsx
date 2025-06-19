@@ -6,43 +6,43 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 // Hardcoded list of all keywords
 const ALL_KEYWORDS = [
-  "112 Day Theory", "1989", "1989 Tour", "Aaron Dessner", "Abigail Anderson", 
-  "Acoustic Song Mess-Up", "Album Announcement", "Album Release", "Amsterdam", 
-  "Ashley Avignone", "Award Show", "Awards", "Behind the scenes / Filming", 
-  "Benefit Event", "Beyonce", "Blake Lively", "Brand Deals / Merch", 
-  "Bug Swallow - Eras Tour", "Calvin Harris", "Cara Delevigne", "Career Event", 
-  "Cats Movie", "Charity / Altruism", "Chiefs Game", "Choreo Error", 
-  "Claire Winter", "Commercial", "Competition Show", "Concert Film", 
-  "Conor Kennedy", "Cory Monteith", "Cover Songs", "Debut", "Demi Lovato", 
-  "Dianna Agron", "Documentary", "Ed Sheeran", "Ellen", "Emily Poe", 
-  "Emma Stone", "Equipment Malfunction", "Evil Eye Jewelry", 
-  "Fan Interactions & Surprises", "Fearless", "Fearless Tour", 
-  "Features / Cameos", "Feuds / Gossip / Drama", "Full Moon", "GMA", 
-  "Gigi Hadid", "Girl Squad", "Gold Neck Tattoo", "Grammy's", "HAIM", 
-  "Hannah Montana: The Movie", "Harry Styles", "Hayley Williams", "Ice Spice", 
-  "Infinity Bracelet", "J Necklace", "Jack Antonoff", "Jake Gyllenhall", 
-  "Jingle Ball", "Joe Alwyn", "Joe Jonas", "John Mayer", "Journal Entry", 
-  "July 4th Parties", "Kanye West", "Karlie Kloss", "Katy Perry", 
-  "Keleigh Teller", "LGBTQ", "Life Event", "Lily Aldridge", "Lily Donaldson", 
-  "Live Performances", "Liz Huett", "Lorde", "Lover", "Lyric Change", 
-  "Magazine Interview / Cover", "Martin Johnson", "Masters Drama", "Matt Healy", 
-  "Merchandise Release", "Meredith / Olivia / Benjamin", "Met Gala", "Midnights", 
-  "Miley Cyrus", "Miscellaneous Events", "Miss Americana", "Movie Release", 
-  "Music Industry Drama", "Music Release", "Music Video Release", "Myspace Blog", 
-  "New Eras Tour Outfit Variant", "Olivia Rodrigo", "Pap Walk / Sighting", 
-  "Paul McCartney", "Plane Travel", "Politics", "Product Release", "Radio Show", 
-  "Rain Show", "Real Estate", "Recording Studio", "Red", "Red Tour", "Reputation", 
-  "Reputation Tour", "SNL", "Sabrina Carpenter", "Sapphire Evil Eye Ring", 
-  "Scissor Jewelry", "Secret Sessions", "Selena Gomez", "Setlist Change", 
-  "Sexual Assault Trial", "Social Media Activity", "Social Media Post", 
-  "Songwriting", "Sophie Turner", "Soundtrack", "Speak Now", "Speak Now Tour", 
-  "Special Guest", "Stevie Nicks", "TNT Bracelet", "TS12 Potential Easter Eggs", 
-  "TTPD", "TV / Streaming Special", "TV / Web Interview", "TV Show Appearances", 
-  "Talk Show", "Taylor Lautner", "Taylor Nation Post", "Taylor's Birthday", 
-  "The Eras Tour", "The Errors Tour", "The Giver", "The Lorax", "Tiny Braid", 
-  "Tom Hiddleston", "Travis Kelce", "Tree Paine", "Unique Tour Occurence", 
-  "VSFS Ring", "Vacation", "Valentine's Day (Movie)", 
-  "Victoria's Secret Fashion Show", "Vlog", "Wardrobe Malfunction", "White Wine", 
+  "112 Day Theory", "1989", "1989 Tour", "Aaron Dessner", "Abigail Anderson",
+  "Acoustic Song Mess-Up", "Album Announcement", "Album Release", "Amsterdam",
+  "Ashley Avignone", "Award Show", "Awards", "Behind the scenes / Filming",
+  "Benefit Event", "Beyonce", "Blake Lively", "Brand Deals / Merch",
+  "Bug Swallow - Eras Tour", "Calvin Harris", "Cara Delevigne", "Career Event",
+  "Cats Movie", "Charity / Altruism", "Chiefs Game", "Choreo Error",
+  "Claire Winter", "Commercial", "Competition Show", "Concert Film",
+  "Conor Kennedy", "Cory Monteith", "Cover Songs", "Debut", "Demi Lovato",
+  "Dianna Agron", "Documentary", "Ed Sheeran", "Ellen", "Emily Poe",
+  "Emma Stone", "Equipment Malfunction", "Evil Eye Jewelry",
+  "Fan Interactions & Surprises", "Fearless", "Fearless Tour",
+  "Features / Cameos", "Feuds / Gossip / Drama", "Full Moon", "GMA",
+  "Gigi Hadid", "Girl Squad", "Gold Neck Tattoo", "Grammy's", "HAIM",
+  "Hannah Montana: The Movie", "Harry Styles", "Hayley Williams", "Ice Spice",
+  "Infinity Bracelet", "J Necklace", "Jack Antonoff", "Jake Gyllenhall",
+  "Jingle Ball", "Joe Alwyn", "Joe Jonas", "John Mayer", "Journal Entry",
+  "July 4th Parties", "Kanye West", "Karlie Kloss", "Katy Perry",
+  "Keleigh Teller", "LGBTQ", "Life Event", "Lily Aldridge", "Lily Donaldson",
+  "Live Performances", "Liz Huett", "Lorde", "Lover", "Lyric Change",
+  "Magazine Interview / Cover", "Martin Johnson", "Masters Drama", "Matt Healy",
+  "Merchandise Release", "Meredith / Olivia / Benjamin", "Met Gala", "Midnights",
+  "Miley Cyrus", "Miscellaneous Events", "Miss Americana", "Movie Release",
+  "Music Industry Drama", "Music Release", "Music Video Release", "Myspace Blog",
+  "New Eras Tour Outfit Variant", "Olivia Rodrigo", "Pap Walk / Sighting",
+  "Paul McCartney", "Plane Travel", "Politics", "Product Release", "Radio Show",
+  "Rain Show", "Real Estate", "Recording Studio", "Red", "Red Tour", "Reputation",
+  "Reputation Tour", "SNL", "Sabrina Carpenter", "Sapphire Evil Eye Ring",
+  "Scissor Jewelry", "Secret Sessions", "Selena Gomez", "Setlist Change",
+  "Sexual Assault Trial", "Social Media Activity", "Social Media Post",
+  "Songwriting", "Sophie Turner", "Soundtrack", "Speak Now", "Speak Now Tour",
+  "Special Guest", "Stevie Nicks", "TNT Bracelet", "TS12 Potential Easter Eggs",
+  "TTPD", "TV / Streaming Special", "TV / Web Interview", "TV Show Appearances",
+  "Talk Show", "Taylor Lautner", "Taylor Nation Post", "Taylor's Birthday",
+  "The Eras Tour", "The Errors Tour", "The Giver", "The Lorax", "Tiny Braid",
+  "Tom Hiddleston", "Travis Kelce", "Tree Paine", "Unique Tour Occurence",
+  "VSFS Ring", "Vacation", "Valentine's Day (Movie)",
+  "Victoria's Secret Fashion Show", "Vlog", "Wardrobe Malfunction", "White Wine",
   "Will Anderson", "Wizard of Oz", "Zoe Kravitz", "evermore", "folklore"
 ];
 
@@ -63,7 +63,7 @@ export default function TimelineBody() {
   const [endDate, setEndDate] = useState("")
   const [monthDay, setMonthDay] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
-  
+
   // Missing state variable - FIXED
   const [showKeywordDropdown, setShowKeywordDropdown] = useState(false)
 
@@ -293,27 +293,28 @@ export default function TimelineBody() {
   }
 
   useEffect(() => {
-      // Initialize AdSense ad after component mounts (only in production)
-      if (window.adsbygoogle && process.env.NODE_ENV === 'production') {
-        try {
-          window.adsbygoogle.push({});
-        } catch (e) {
-          console.error("Adsense error:", e);
-        }
+    // Initialize AdSense ad after component mounts (only in production)
+    if (window.adsbygoogle && process.env.NODE_ENV === 'production') {
+      try {
+        window.adsbygoogle.push({});
+      } catch (e) {
+        console.error("Adsense error:", e);
       }
+    }
   }, []);
 
   return (
     <div className="bg-[#e6edf7] py-8">
       {/* Ad Placement */}
       <div className="max-w-4xl mx-auto py-8 bg-[#fef2f2] mb-6 text-center text-[#6b7280]">
-        <ins className="adsbygoogle"
+        {process.env.NODE_ENV === 'production' && (
+          <ins className="adsbygoogle"
             style={{ display: 'block' }}
             data-ad-client="ca-pub-4534610257929133"
             data-ad-slot="3327797457"
             data-ad-format="auto"
-            data-full-width-responsive="true"
-          ></ins>
+            data-full-width-responsive="true"></ins>
+        )}
       </div>
 
       {/* Filters */}
