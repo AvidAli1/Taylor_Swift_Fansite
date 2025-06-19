@@ -1,6 +1,19 @@
 import { Button } from "./ui/Button"
+import { useEffect } from "react"
 
 export default function Footer() {
+
+  useEffect(() => {
+    // Initialize AdSense ad after component mounts (only in production)
+    if (window.adsbygoogle && process.env.NODE_ENV === 'production') {
+      try {
+        window.adsbygoogle.push({});
+      } catch (e) {
+        console.error("Adsense error:", e);
+      }
+    }
+  }, []);
+
   return (
     <footer className="w-full">
       <div className="relative">
@@ -16,7 +29,13 @@ export default function Footer() {
 
         {/* Ad Placement */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white/90 p-5 rounded-lg text-center">
-          <h3 className="text-[#6b7db3] text-lg font-medium mb-3">Ad Placement</h3>
+          <ins className="adsbygoogle"
+            style={{ display: 'block' }}
+            data-ad-client="ca-pub-4534610257929133"
+            data-ad-slot="3327797457"
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+          ></ins>
         </div>
       </div>
 

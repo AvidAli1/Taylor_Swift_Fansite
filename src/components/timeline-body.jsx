@@ -292,10 +292,29 @@ export default function TimelineBody() {
     }
   }
 
+  useEffect(() => {
+      // Initialize AdSense ad after component mounts (only in production)
+      if (window.adsbygoogle && process.env.NODE_ENV === 'production') {
+        try {
+          window.adsbygoogle.push({});
+        } catch (e) {
+          console.error("Adsense error:", e);
+        }
+      }
+  }, []);
+
   return (
     <div className="bg-[#e6edf7] py-8">
       {/* Ad Placement */}
-      <div className="max-w-4xl mx-auto py-8 bg-[#fef2f2] mb-6 text-center text-[#6b7280]">Ad Placement</div>
+      <div className="max-w-4xl mx-auto py-8 bg-[#fef2f2] mb-6 text-center text-[#6b7280]">
+        <ins className="adsbygoogle"
+            style={{ display: 'block' }}
+            data-ad-client="ca-pub-4534610257929133"
+            data-ad-slot="3327797457"
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+          ></ins>
+      </div>
 
       {/* Filters */}
       <div className="max-w-6xl mx-auto px-4 mb-6 flex flex-wrap gap-2 py-8">
