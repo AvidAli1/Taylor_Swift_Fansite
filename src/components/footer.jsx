@@ -18,7 +18,7 @@ export default function Footer() {
     <footer className="w-full overflow-hidden">
       <div className="relative">
         {/* Background Image */}
-        <div className="relative w-full h-[340px]">
+        <div className="relative w-full h-[390px]">
           <img
             src="/images/taylor_swift_background.jpg"
             alt="Taylor Swift Background"
