@@ -292,167 +292,181 @@ export default function TimelineBody() {
     }
   }
 
+  // Fixed AdSense initialization
   useEffect(() => {
     // Initialize AdSense ad after component mounts (only in production)
-    if (window.adsbygoogle && process.env.NODE_ENV === 'production') {
+    if (typeof window !== 'undefined' && window.adsbygoogle && process.env.NODE_ENV === 'production') {
       try {
-        window.adsbygoogle.push({});
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
       } catch (e) {
-        console.error("Adsense error:", e);
+        console.error("AdSense error:", e);
       }
     }
   }, []);
 
   return (
-    <div className="bg-[#e6edf7] py-8">
-      {/* Ad Placement */}
-      <div className="max-w-4xl mx-auto py-8 bg-[#fef2f2] mb-6 text-center text-[#6b7280]">
-        {process.env.NODE_ENV === 'production' && (
-          <ins className="adsbygoogle"
-            style={{ display: 'block' }}
-            data-ad-client="ca-pub-4534610257929133"
-            data-ad-slot="3327797457"
-            data-ad-format="auto"
-            data-full-width-responsive="true"></ins>
-        )}
+    <div className="bg-[#e6edf7] py-8 overflow-hidden">
+      {/* Ad Placement - Fixed for mobile */}
+      <div className="w-full max-w-4xl mx-auto px-4 mb-6">
+        <div className="py-8 bg-[#fef2f2] rounded-lg text-center min-h-[100px] flex items-center justify-center">
+          {process.env.NODE_ENV === 'production' ? (
+            <ins 
+              className="adsbygoogle"
+              style={{ 
+                display: 'block',
+                width: '100%',
+                maxWidth: '728px',
+                margin: '0 auto'
+              }}
+              data-ad-client="ca-pub-4534610257929133"
+              data-ad-slot="3327797457"
+              data-ad-format="auto"
+              data-full-width-responsive="true"
+            />
+          ) : (
+            <div className="text-[#6b7280] text-sm">Ad Placeholder (Development)</div>
+          )}
+        </div>
       </div>
 
-      {/* Filters */}
-      <div className="max-w-6xl mx-auto px-4 mb-6 flex flex-wrap gap-2 py-8">
-        {/* Sort By */}
-        <div className="relative">
-          <button
-            className="flex items-center justify-between bg-white text-[#6b7db3] border border-[#6b7db3] rounded-full px-4 py-1.5 text-sm min-w-[100px]"
-            onClick={() => handleSortChange(sortOrder === "asc" ? "desc" : "asc")}
-          >
-            <span>Sort By {sortOrder === "asc" ? "Oldest" : "Newest"}</span>
-            <span className="ml-2">▼</span>
-          </button>
-        </div>
+      {/* Filters - Fixed for mobile */}
+      <div className="max-w-6xl mx-auto px-4 mb-6">
+        <div className="flex flex-wrap gap-2 py-4">
+          {/* Sort By */}
+          <div className="relative">
+            <button
+              className="flex items-center justify-between bg-white text-[#6b7db3] border border-[#6b7db3] rounded-full px-4 py-1.5 text-sm min-w-[100px]"
+              onClick={() => handleSortChange(sortOrder === "asc" ? "desc" : "asc")}
+            >
+              <span>Sort By {sortOrder === "asc" ? "Oldest" : "Newest"}</span>
+              <span className="ml-2">▼</span>
+            </button>
+          </div>
 
-        {/* Filter Keywords with Dropdown - Updated for multi-select */}
-        <div className="relative">
-          <button
-            className="flex items-center justify-between bg-white text-[#6b7db3] border border-[#6b7db3] rounded-full px-4 py-1.5 text-sm min-w-[150px]"
-            onClick={() => setShowKeywordDropdown(!showKeywordDropdown)}
-          >
-            <span>{filterKeywords.length > 0 ? `${filterKeywords.length} selected` : "Filter Key words"}</span>
-            <span className="ml-2">▼</span>
-          </button>
+          {/* Filter Keywords with Dropdown - Updated for multi-select */}
+          <div className="relative">
+            <button
+              className="flex items-center justify-between bg-white text-[#6b7db3] border border-[#6b7db3] rounded-full px-4 py-1.5 text-sm min-w-[150px]"
+              onClick={() => setShowKeywordDropdown(!showKeywordDropdown)}
+            >
+              <span>{filterKeywords.length > 0 ? `${filterKeywords.length} selected` : "Filter Key words"}</span>
+              <span className="ml-2">▼</span>
+            </button>
 
-          {showKeywordDropdown && (
-            <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-[#6b7db3] rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
-              <div className="p-2">
-                <button
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-[#e6edf7] rounded"
-                  onClick={() => {
-                    setFilterKeywords([])
-                    setShowKeywordDropdown(false)
-                    resetPagination()
-                  }}
-                >
-                  Clear All Filters
-                </button>
-                {ALL_KEYWORDS.map((keyword, index) => (
-                  <div key={index} className="flex items-center px-3 py-2">
-                    <input
-                      type="checkbox"
-                      id={`keyword-${index}`}
-                      checked={filterKeywords.includes(keyword)}
-                      onChange={() => handleKeywordFilter(keyword)}
-                      className="mr-2"
-                    />
-                    <label htmlFor={`keyword-${index}`} className="text-sm cursor-pointer">
-                      {keyword}
-                    </label>
-                  </div>
-                ))}
+            {showKeywordDropdown && (
+              <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-[#6b7db3] rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                <div className="p-2">
+                  <button
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-[#e6edf7] rounded"
+                    onClick={() => {
+                      setFilterKeywords([])
+                      setShowKeywordDropdown(false)
+                      resetPagination()
+                    }}
+                  >
+                    Clear All Filters
+                  </button>
+                  {ALL_KEYWORDS.map((keyword, index) => (
+                    <div key={index} className="flex items-center px-3 py-2">
+                      <input
+                        type="checkbox"
+                        id={`keyword-${index}`}
+                        checked={filterKeywords.includes(keyword)}
+                        onChange={() => handleKeywordFilter(keyword)}
+                        className="mr-2"
+                      />
+                      <label htmlFor={`keyword-${index}`} className="text-sm cursor-pointer">
+                        {keyword}
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </div>
+            )}
+          </div>
+
+          {/* Start Date - Input field */}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Start Date (YYYY-MM-DD)"
+              className="bg-white text-[#6b7db3] border border-[#6b7db3] rounded-full px-4 py-1.5 text-sm min-w-[150px]"
+              value={startDate}
+              onChange={(e) => {
+                setStartDate(e.target.value)
+                handleDateRangeChange(e.target.value, endDate)
+              }}
+            />
+          </div>
+
+          {/* End Date - Input field */}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="End Date (YYYY-MM-DD)"
+              className="bg-white text-[#6b7db3] border border-[#6b7db3] rounded-full px-4 py-1.5 text-sm min-w-[150px]"
+              value={endDate}
+              onChange={(e) => {
+                setEndDate(e.target.value)
+                handleDateRangeChange(startDate, e.target.value)
+              }}
+            />
+          </div>
+
+          {/* Month/Day - Input field */}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Month/Day (MM/DD)"
+              className="bg-white text-[#6b7db3] border border-[#6b7db3] rounded-full px-4 py-1.5 text-sm min-w-[150px]"
+              value={monthDay}
+              onChange={(e) => {
+                setMonthDay(e.target.value)
+                handleMonthDayChange(e.target.value)
+              }}
+            />
+          </div>
+
+          {/* Search - Updated */}
+          <div className="relative flex-grow min-w-[200px]">
+            <form onSubmit={handleSearch} className="relative ml-2">
+              <input
+                type="text"
+                placeholder="Search Any key words or title"
+                className="w-full rounded-full py-1.5 pl-10 pr-4 text-sm bg-white border border-[#6b7db3] text-[#6b7db3]"
+                value={searchQuery}
+                onChange={handleSearchInputChange}
+                onKeyPress={handleSearchKeyPress}
+              />
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <svg
+                  className="w-4 h-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="#6b7db3"
+                >
+                  <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12A6 6 0 0110 4z" />
+                </svg>
+              </div>
+            </form>
+          </div>
+
+          {/* Clear filter button when tags are selected */}
+          {filterKeywords.length > 0 && (
+            <div className="relative">
+              <button
+                className="flex items-center justify-between bg-[#b91c1c] text-white rounded-full px-4 py-1.5 text-sm"
+                onClick={() => {
+                  setFilterKeywords([]);
+                  resetPagination();
+                }}
+              >
+                Clear {filterKeywords.length} Filter{filterKeywords.length !== 1 ? 's' : ''}
+                <span className="ml-2">×</span>
+              </button>
             </div>
           )}
         </div>
-
-        {/* Start Date - Input field */}
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Start Date (YYYY-MM-DD)"
-            className="bg-white text-[#6b7db3] border border-[#6b7db3] rounded-full px-4 py-1.5 text-sm min-w-[150px]"
-            value={startDate}
-            onChange={(e) => {
-              setStartDate(e.target.value)
-              handleDateRangeChange(e.target.value, endDate)
-            }}
-          />
-        </div>
-
-        {/* End Date - Input field */}
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="End Date (YYYY-MM-DD)"
-            className="bg-white text-[#6b7db3] border border-[#6b7db3] rounded-full px-4 py-1.5 text-sm min-w-[150px]"
-            value={endDate}
-            onChange={(e) => {
-              setEndDate(e.target.value)
-              handleDateRangeChange(startDate, e.target.value)
-            }}
-          />
-        </div>
-
-        {/* Month/Day - Input field */}
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Month/Day (MM/DD)"
-            className="bg-white text-[#6b7db3] border border-[#6b7db3] rounded-full px-4 py-1.5 text-sm min-w-[150px]"
-            value={monthDay}
-            onChange={(e) => {
-              setMonthDay(e.target.value)
-              handleMonthDayChange(e.target.value)
-            }}
-          />
-        </div>
-
-        {/* Search - Updated */}
-        <div className="relative flex-grow">
-          <form onSubmit={handleSearch} className="relative ml-2">
-            <input
-              type="text"
-              placeholder="Search Any key words or title"
-              className="w-full rounded-full py-1.5 pl-10 pr-4 text-sm bg-white border border-[#6b7db3] text-[#6b7db3]"
-              value={searchQuery}
-              onChange={handleSearchInputChange}
-              onKeyPress={handleSearchKeyPress}
-            />
-            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-              <svg
-                className="w-4 h-4"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="#6b7db3"
-              >
-                <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12A6 6 0 0110 4z" />
-              </svg>
-            </div>
-          </form>
-        </div>
-
-        {/* Clear filter button when tags are selected */}
-        {filterKeywords.length > 0 && (
-          <div className="relative">
-            <button
-              className="flex items-center justify-between bg-[#b91c1c] text-white rounded-full px-4 py-1.5 text-sm"
-              onClick={() => {
-                setFilterKeywords([]);
-                resetPagination();
-              }}
-            >
-              Clear {filterKeywords.length} Filter{filterKeywords.length !== 1 ? 's' : ''}
-              <span className="ml-2">×</span>
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Selected keywords chips */}
@@ -481,9 +495,9 @@ export default function TimelineBody() {
         </div>
       )}
 
-      {/* Posts Grid */}
+      {/* Posts Grid - Fixed for mobile */}
       {!loading && (
-        <div className="max-w-6xl sm:max-w-[90%] mx-auto px-4">
+        <div className="max-w-6xl mx-auto px-4">
           {posts.length === 0 ? (
             <div className="text-center py-12 text-[#b91c1c]">
               No posts found matching your criteria. Try different filters.
