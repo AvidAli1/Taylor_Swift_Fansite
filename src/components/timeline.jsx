@@ -15,7 +15,7 @@ export default function Timeline() {
     const [screenScale, setScreenScale] = useState(1);
 
     const today = new Date();
-    const day = today.getDate();
+    const day = today.getDate() + 1;
     const month = today.getMonth() + 1;
 
     const [currentMonth, setCurrentMonth] = useState(month);
