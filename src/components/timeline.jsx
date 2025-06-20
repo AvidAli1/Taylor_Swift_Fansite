@@ -243,9 +243,11 @@ export default function Timeline() {
                     <div className="relative w-full mb-2 md:mb-3 px-2 md:px-5">
                         <div className="relative w-full px-2 md:px-3 py-2.5 md:py-5 bg-[#e8eef9]">
                             <div className="max-w-4xl mx-auto text-center">
-                                <h2 className="text-lg sm:text-xl md:text-3xl lg:text-6xl font-serif text-[#8e3e3e] text-center">
+                                <h2 className="text-lg sm:text-xl md:text-2xl lg:text-5xl font-serif text-[#8e3e3e] text-center">
                                     <span className="block">ON THIS DAY</span>
-                                    <span className="text-lg sm:text-base md:text-xl lg:text-3xl block mt-1">in Taylor Swift History</span>
+                                    <span className="text-base sm:text-sm md:text-xl lg:text-2xl block mt-1">
+                                        in Taylor Swift History
+                                    </span>
                                 </h2>
                             </div>
 
