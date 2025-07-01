@@ -14,7 +14,7 @@ const ALL_KEYWORDS = [
   "Cats Movie", "Charity / Altruism", "Chiefs Game", "Choreo Error",
   "Claire Winter", "Commercial", "Competition Show", "Concert Film",
   "Conor Kennedy", "Cory Monteith", "Cover Songs", "Debut", "Demi Lovato",
-  "Dianna Agron", "Documentary", "Ed Sheeran", "Ellen", "Emily Poe",
+  "Dianna Agron", "Documentary","evermore", "Ed Sheeran", "Ellen", "Emily Poe",
   "Emma Stone", "Equipment Malfunction", "Evil Eye Jewelry",
   "Fan Interactions & Surprises", "Fearless", "Fearless Tour",
   "Features / Cameos", "Feuds / Gossip / Drama", "Full Moon", "GMA",
@@ -43,7 +43,7 @@ const ALL_KEYWORDS = [
   "Tom Hiddleston", "Travis Kelce", "Tree Paine", "Unique Tour Occurence",
   "VSFS Ring", "Vacation", "Valentine's Day (Movie)",
   "Victoria's Secret Fashion Show", "Vlog", "Wardrobe Malfunction", "White Wine",
-  "Will Anderson", "Wizard of Oz", "Zoe Kravitz", "evermore", "folklore"
+  "Will Anderson", "Wizard of Oz", "Zoe Kravitz", "folklore"
 ];
 
 export default function TimelineBody() {
@@ -66,6 +66,10 @@ export default function TimelineBody() {
 
   // Missing state variable - FIXED
   const [showKeywordDropdown, setShowKeywordDropdown] = useState(false)
+
+  // New states for keyword search and has any/all
+  const [keywordSearchQuery, setKeywordSearchQuery] = useState("")
+  const [keywordMatchType, setKeywordMatchType] = useState("all") // "any" or "all"
 
   // Store pagination history
   const [offsetHistory, setOffsetHistory] = useState([null])
@@ -114,6 +118,27 @@ export default function TimelineBody() {
     }
   }, [location.search, navigate]);
 
+  // Function to filter keywords based on search query
+  const getFilteredKeywords = () => {
+    if (!keywordSearchQuery.trim()) {
+      return ALL_KEYWORDS;
+    }
+    
+    const query = keywordSearchQuery.toLowerCase();
+    return ALL_KEYWORDS.filter(keyword => 
+      keyword.toLowerCase().includes(query)
+    ).sort((a, b) => {
+      // Prioritize exact matches and starts with matches
+      const aLower = a.toLowerCase();
+      const bLower = b.toLowerCase();
+      
+      if (aLower.startsWith(query) && !bLower.startsWith(query)) return -1;
+      if (!aLower.startsWith(query) && bLower.startsWith(query)) return 1;
+      
+      return a.localeCompare(b);
+    });
+  };
+
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true)
@@ -138,14 +163,19 @@ export default function TimelineBody() {
           }
         }
 
-        // Improved keyword filter (multi-select)
+        // Updated keyword filter with "has any" vs "has all" logic
         if (filterKeywords.length > 0) {
           const keywordFilters = filterKeywords.map(keyword => {
             return `FIND('${keyword}', ARRAYJOIN({KEYWORDS}, ',')) > 0`;
-          }).join(',');
+          });
+          
+          const keywordFormula = keywordMatchType === "any" 
+            ? `OR(${keywordFilters.join(',')})`
+            : `AND(${keywordFilters.join(',')})`;
+            
           filterFormula = filterFormula
-            ? `AND(${filterFormula}, OR(${keywordFilters}))`
-            : `OR(${keywordFilters})`;
+            ? `AND(${filterFormula}, ${keywordFormula})`
+            : keywordFormula;
         }
 
         // Capitalize first letter for search query
@@ -218,7 +248,7 @@ export default function TimelineBody() {
     }
 
     fetchPosts()
-  }, [currentOffsetIndex, sortOrder, filterKeywords, startDate, endDate, monthDay, searchQuery])
+  }, [currentOffsetIndex, sortOrder, filterKeywords, keywordMatchType, startDate, endDate, monthDay, searchQuery])
 
   // Handle filter changes - reset pagination when filters change
   const handleSortChange = (order) => {
@@ -343,7 +373,7 @@ export default function TimelineBody() {
             </button>
           </div>
 
-          {/* Filter Keywords with Dropdown - Updated for multi-select */}
+          {/* Filter Keywords with Dropdown - Updated with search functionality */}
           <div className="relative">
             <button
               className="flex items-center justify-between bg-white text-[#6b7db3] border border-[#6b7db3] rounded-full px-4 py-1.5 text-sm min-w-[150px]"
@@ -354,32 +384,88 @@ export default function TimelineBody() {
             </button>
 
             {showKeywordDropdown && (
-              <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-[#6b7db3] rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+              <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-[#6b7db3] rounded-lg shadow-lg z-50 max-h-80 overflow-hidden">
                 <div className="p-2">
+                  {/* Search input for keywords */}
+                  <div className="relative mb-2">
+                    <input
+                      type="text"
+                      placeholder="Search keywords..."
+                      className="w-full bg-white text-[#6b7db3] border border-[#6b7db3] rounded-full px-3 py-1.5 text-sm"
+                      value={keywordSearchQuery}
+                      onChange={(e) => setKeywordSearchQuery(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Has Any/All toggle - only show when keywords are selected */}
+                  {filterKeywords.length > 0 && (
+                    <div className="mb-2 p-2 bg-[#e6edf7] rounded">
+                      <div className="flex items-center gap-4">
+                        <label className="flex items-center text-sm">
+                          <input
+                            type="radio"
+                            name="matchType"
+                            value="any"
+                            checked={keywordMatchType === "any"}
+                            onChange={(e) => {
+                              setKeywordMatchType(e.target.value);
+                              resetPagination();
+                            }}
+                            className="mr-1"
+                          />
+                          Has Any
+                        </label>
+                        <label className="flex items-center text-sm">
+                          <input
+                            type="radio"
+                            name="matchType"
+                            value="all"
+                            checked={keywordMatchType === "all"}
+                            onChange={(e) => {
+                              setKeywordMatchType(e.target.value);
+                              resetPagination();
+                            }}
+                            className="mr-1"
+                          />
+                          Has All
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
                   <button
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-[#e6edf7] rounded"
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-[#e6edf7] rounded mb-1"
                     onClick={() => {
                       setFilterKeywords([])
                       setShowKeywordDropdown(false)
+                      setKeywordSearchQuery("")
                       resetPagination()
                     }}
                   >
                     Clear All Filters
                   </button>
-                  {ALL_KEYWORDS.map((keyword, index) => (
-                    <div key={index} className="flex items-center px-3 py-2">
-                      <input
-                        type="checkbox"
-                        id={`keyword-${index}`}
-                        checked={filterKeywords.includes(keyword)}
-                        onChange={() => handleKeywordFilter(keyword)}
-                        className="mr-2"
-                      />
-                      <label htmlFor={`keyword-${index}`} className="text-sm cursor-pointer">
-                        {keyword}
-                      </label>
-                    </div>
-                  ))}
+
+                  <div className="max-h-48 overflow-y-auto">
+                    {getFilteredKeywords().map((keyword, index) => (
+                      <div key={index} className="flex items-center px-3 py-2">
+                        <input
+                          type="checkbox"
+                          id={`keyword-${index}`}
+                          checked={filterKeywords.includes(keyword)}
+                          onChange={() => handleKeywordFilter(keyword)}
+                          className="mr-2"
+                        />
+                        <label htmlFor={`keyword-${index}`} className="text-sm cursor-pointer">
+                          {keyword}
+                        </label>
+                      </div>
+                    ))}
+                    {getFilteredKeywords().length === 0 && keywordSearchQuery && (
+                      <div className="px-3 py-2 text-sm text-gray-500">
+                        No keywords found matching "{keywordSearchQuery}"
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -469,22 +555,27 @@ export default function TimelineBody() {
         </div>
       </div>
 
-      {/* Selected keywords chips */}
+      {/* Selected keywords chips with match type indicator */}
       {filterKeywords.length > 0 && (
-        <div className="max-w-6xl mx-auto px-4 mb-4 flex flex-wrap gap-2">
-          {filterKeywords.map((keyword, index) => (
-            <div
-              key={index}
-              className="bg-[#8a9ac7] text-white text-xs px-3 py-1 rounded-full flex items-center cursor-pointer hover:bg-[#6b7db3]"
-              onClick={() => {
-                setFilterKeywords(filterKeywords.filter(k => k !== keyword));
-                resetPagination();
-              }}
-            >
-              {keyword}
-              <span className="ml-1 text-xs">×</span>
-            </div>
-          ))}
+        <div className="max-w-6xl mx-auto px-4 mb-4">
+          <div className="flex items-center flex-wrap gap-2">
+            <span className="text-sm text-[#6b7db3] font-medium">
+              Has {keywordMatchType === "all" ? "All" : "Any"}:
+            </span>
+            {filterKeywords.map((keyword, index) => (
+              <div
+                key={index}
+                className="bg-[#8a9ac7] text-white text-xs px-3 py-1 rounded-full flex items-center cursor-pointer hover:bg-[#6b7db3]"
+                onClick={() => {
+                  setFilterKeywords(filterKeywords.filter(k => k !== keyword));
+                  resetPagination();
+                }}
+              >
+                {keyword}
+                <span className="ml-1 text-xs">×</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

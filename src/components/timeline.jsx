@@ -105,9 +105,8 @@ export default function Timeline() {
                             Authorization: `Bearer ${import.meta.env.VITE_AIRTABLE_API_KEY}`,
                         },
                         params: {
-                            maxRecords: 6,
                             filterByFormula: `AND(MONTH(DATE) = ${month}, DAY(DATE) = ${day})`,
-                            sort: [{ field: "DATE", direction: "asc" }],
+                            sort: [{ field: "DATE", direction: "desc" }], // Changed to descending order
                         },
                     }
                 );
@@ -186,18 +185,6 @@ export default function Timeline() {
                                     {record?.fields?.EVENT || 'Event description unavailable'}
                                 </h3>
 
-                                {/* Event Image - Empty space reserved even when no image */}
-                                <div className="w-full h-[119px] md:h-[170px] relative rounded-xl overflow-hidden shadow-md">
-                                    {record?.fields?.IMAGE?.[0]?.url ? (
-                                        <img
-                                            src={record.fields.IMAGE[0].url}
-                                            alt="Taylor Swift Event"
-                                            className="absolute inset-0 w-full h-full object-cover object-[center_35%]"
-                                        />
-                                    ) : null}
-                                </div>
-
-
                                 {/* Notes */}
                                 {record?.fields?.NOTES && (
                                     <p className="text-xs md:text-sm text-center font-medium text-gray-700 leading-relaxed">
@@ -239,7 +226,7 @@ export default function Timeline() {
         <section className="w-full bg-[#e8ecf7] py-3 md:py-7 px-2 md:px-10 flex-grow">
             <div className="container mx-auto h-full flex flex-col">
                 {/* On This Day Section */}
-                <div className="text-center mb-3 md:mb-7">
+                <div className="text-center mb-1 md:mb-3 transform translate-x-0 md:translate-x-[-19px]">
                     <div className="relative w-full mb-2 md:mb-3 px-2 md:px-5">
                         <div className="relative w-full px-2 md:px-3 py-2.5 md:py-5 bg-[#e8eef9]">
                             <div className="max-w-4xl mx-auto text-center">
@@ -303,14 +290,28 @@ export default function Timeline() {
                     </div>
                 </div>
 
+                {/* Event Counter */}
+                <div className="flex justify-center transform translate-x-0 md:translate-x-[-9px]">
+                    <div className="bg-white rounded-full px-2 sm:px-3 md:px-4 py-1 border border-[#b66b6b] shadow-sm">
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#8e3e3e] animate-pulse"></div>
+                            <span className="text-[#8e3e3e] text-xs md:text-sm font-medium">
+                                {records.length} {records.length === 1 ? 'Event' : 'Events'} Found
+                            </span>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#8e3e3e] animate-pulse"></div>
+                        </div>
+                    </div>
+                </div>
+
+
                 {/* Timeline Section */}
-                <div className="relative mt-5 md:mt-10 mb-3 md:mb-7 flex-grow overflow-hidden">
+                <div className="relative mt-5 md:mt-10 mb-3 md:mb-7 flex-grow">
                     {/* Mobile Timeline (Single Column) */}
                     <div className="md:hidden h-[60vh] overflow-y-auto relative mobile-timeline-container">
                         <div className="relative flex justify-center">
                             {/* Center line */}
                             <div className="relative w-[2px] flex flex-col items-center bg-[#e8ecf7]">
-                                <div className="h-[1700px] w-[3px] bg-[#8a9ad4]"></div>
+                                <div className="h-[1200px] w-[3px] bg-[#8a9ad4]"></div>
 
                                 {/* Circles on the line */}
                                 <div className="absolute left-1/2 -translate-x-1/2 top-[0px] w-4 h-4 rounded-full bg-[#6B78B4]"></div>
@@ -318,10 +319,10 @@ export default function Timeline() {
                                     <div
                                         key={`mobile-circle-${index}`}
                                         className={`absolute left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#FEE6E3] border-2 border-[#6B78B4]`}
-                                        style={{ top: `${170 + (index * 170)}px` }}
+                                        style={{ top: `${120 + (index * 120)}px` }}
                                     ></div>
                                 ))}
-                                <div className="absolute left-1/2 -translate-x-1/2 top-[1020px] w-4 h-4 rounded-full bg-[#6B78B4]"></div>
+                                <div className="absolute left-1/2 -translate-x-1/2 top-[720px] w-4 h-4 rounded-full bg-[#6B78B4]"></div>
                             </div>
 
                             {/* Mobile Timeline Items */}
@@ -341,47 +342,31 @@ export default function Timeline() {
                         )}
                     </div>
 
-                    {/* Desktop Timeline - Fixed Version */}
-                    <div className="hidden md:block h-[50vh] overflow-y-auto overflow-x-hidden pr-3 timeline-scroll">
+                    {/* Desktop Timeline - Fixed */}
+                    <div className="hidden md:block">
                         <div className="relative flex justify-center">
-                            {/* Center line - dynamically calculated height */}
-                            <div className="absolute w-[2px] flex flex-col items-center">
-                                <div
-                                    className="w-[5px] bg-[#8a9ad4]"
-                                    style={{
-                                        height: records.length > 0
-                                            ? `${(records.length * 220) + ((records.length - 1) * 200)}px`
-                                            : '0px'
-                                    }}
-                                ></div>
-
-                                {/* Circles on the line - dynamically positioned */}
-                                {records.map((_, index) => {
-                                    const topPosition = index * 504;
-                                    return (
-                                        <div
-                                            key={`desktop-circle-${index}`}
-                                            className={`absolute left-1/2 -translate-x-1/2 w-7 h-7 rounded-full 
-                  ${index === 0 || index === records.length - 1
-                                                    ? 'bg-[#6B78B4]'
-                                                    : 'bg-[#FEE6E3] border-3 border-[#6B78B4]'}`}
-                                            style={{ top: `${topPosition}px` }}
-                                        ></div>
-                                    );
-                                })}
+                            {/* Center line - spans full height */}
+                            <div className="absolute w-[2px] flex flex-col items-center h-full">
+                                <div className="w-[5px] bg-[#8a9ad4] h-full"></div>
+                                
+                                {/* Top circle */}
+                                <div className="absolute left-1/2 -translate-x-1/2 top-0 w-7 h-7 rounded-full bg-[#6B78B4]"></div>
+                                
+                                {/* Bottom circle */}
+                                <div className="absolute left-1/2 -translate-x-1/2 bottom-0 w-7 h-7 rounded-full bg-[#6B78B4]"></div>
                             </div>
 
                             {/* Desktop Timeline Items */}
-                            <div className="absolute left-1/2 -translate-x-1/4 w-3/4">
+                            <div className="relative left-[37.5%] -translate-x-1/4 w-3/4">
                                 {records.map((record, index) => (
                                     <div
                                         key={`desktop-${record.id}`}
                                         className="relative transition-all duration-300"
                                         style={{
-                                            marginTop: index === 0 ? "0" : "140px",
+                                            marginTop: index === 0 ? "0" : "50px",
                                         }}
                                     >
-                                        <div className="transform scale-[1.10] origin-top -translate-x-1/4">
+                                        <div className="transform scale-[0.90] origin-top -translate-x-1/4">
                                             <TimelineCard record={record} index={index} />
                                         </div>
                                     </div>
@@ -389,15 +374,13 @@ export default function Timeline() {
                             </div>
                         </div>
                     </div>
-
-                    {/* Custom scrollbar */}
-                    <div className="hidden md:block absolute left-8 right-0 top-0 bottom-0 w-2 bg-gradient-to-r from-transparent to-[#e8ecf7]/80 pointer-events-none"></div>
                 </div>
 
-                <div className="flex justify-center mt-3 md:mt-7">
+                {/* View Full Timeline Button */}
+                <div className="flex justify-center mt-1 md:mt-3">
                     <Button
                         variant="secondary"
-                        className="rounded-full px-5 sm:px-10 md:px-17 lg:px-51 py-1.5 w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg"
+                        className="rounded-full px-5 py-1.5 w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg"
                         onClick={() => navigate("/posts")}
                     >
                         View Full Timeline
