@@ -11,39 +11,37 @@ const ALL_KEYWORDS = [
   "Ashley Avignone", "Award Show", "Awards", "Behind the scenes / Filming",
   "Benefit Event", "Beyonce", "Blake Lively", "Brand Deals / Merch",
   "Bug Swallow - Eras Tour", "Calvin Harris", "Cara Delevigne", "Career Event",
-  "Cats Movie", "Charity / Altruism", "Chiefs Game", "Choreo Error",
-  "Claire Winter", "Commercial", "Competition Show", "Concert Film",
-  "Conor Kennedy", "Cory Monteith", "Cover Songs", "Debut", "Demi Lovato",
-  "Dianna Agron", "Documentary","evermore", "Ed Sheeran", "Ellen", "Emily Poe",
-  "Emma Stone", "Equipment Malfunction", "Evil Eye Jewelry",
-  "Fan Interactions & Surprises", "Fearless", "Fearless Tour",
-  "Features / Cameos", "Feuds / Gossip / Drama", "Full Moon", "GMA",
-  "Gigi Hadid", "Girl Squad", "Gold Neck Tattoo", "Grammy's", "HAIM",
-  "Hannah Montana: The Movie", "Harry Styles", "Hayley Williams", "Ice Spice",
-  "Infinity Bracelet", "J Necklace", "Jack Antonoff", "Jake Gyllenhall",
-  "Jingle Ball", "Joe Alwyn", "Joe Jonas", "John Mayer", "Journal Entry",
-  "July 4th Parties", "Kanye West", "Karlie Kloss", "Katy Perry",
-  "Keleigh Teller", "LGBTQ", "Life Event", "Lily Aldridge", "Lily Donaldson",
-  "Live Performances", "Liz Huett", "Lorde", "Lover", "Lyric Change",
-  "Magazine Interview / Cover", "Martin Johnson", "Masters Drama", "Matt Healy",
-  "Merchandise Release", "Meredith / Olivia / Benjamin", "Met Gala", "Midnights",
-  "Miley Cyrus", "Miscellaneous Events", "Miss Americana", "Movie Release",
+  "Cats Movie", "Charity / Altruism", "Chiefs Game", "Choreo Error", "Claire Winter",
+  "Commercial", "Competition Show", "Concert Film", "Conor Kennedy", "Cory Monteith",
+  "Cover Songs", "Daisy attire", "Debut", "Demi Lovato", "Dianna Agron",
+  "Documentary", "Ed Sheeran", "Ellen", "Emily Poe", "Emma Stone",
+  "Equipment Malfunction", "evermore", "Evil Eye Jewelry", "Fan Interactions & Surprises",
+  "Fearless", "Fearless Tour", "Features / Cameos", "Feuds / Gossip / Drama",
+  "folklore", "Full Moon", "Gigi Hadid", "Girl Squad", "GMA",
+  "Gold Neck Tattoo", "Grammy's", "HAIM", "Hannah Montana: The Movie",
+  "Harry Styles", "Hayley Williams", "Ice Spice", "Infinity Bracelet", "J Necklace",
+  "Jack Antonoff", "Jake Gyllenhall", "Jingle Ball", "Joe Alwyn", "Joe Jonas",
+  "John Mayer", "Journal Entry", "July 4th Parties", "Kanye West", "Karlie Kloss",
+  "Katy Perry", "Keleigh Teller", "LGBTQ", "Life Event", "Lily Aldridge",
+  "Lily Donaldson", "Live Performances", "Liz Huett", "Lorde", "Lover",
+  "Lyric Change", "Magazine Interview / Cover", "Martin Johnson", "Masters Drama",
+  "Matt Healy", "Merchandise Release", "Meredith / Olivia / Benjamin", "Met Gala",
+  "Midnights", "Miley Cyrus", "Miscellaneous Events", "Miss Americana", "Movie Release",
   "Music Industry Drama", "Music Release", "Music Video Release", "Myspace Blog",
-  "New Eras Tour Outfit Variant", "Olivia Rodrigo", "Pap Walk / Sighting",
-  "Paul McCartney", "Plane Travel", "Politics", "Product Release", "Radio Show",
-  "Rain Show", "Real Estate", "Recording Studio", "Red", "Red Tour", "Reputation",
-  "Reputation Tour", "SNL", "Sabrina Carpenter", "Sapphire Evil Eye Ring",
-  "Scissor Jewelry", "Secret Sessions", "Selena Gomez", "Setlist Change",
-  "Sexual Assault Trial", "Social Media Activity", "Social Media Post",
-  "Songwriting", "Sophie Turner", "Soundtrack", "Speak Now", "Speak Now Tour",
-  "Special Guest", "Stevie Nicks", "TNT Bracelet", "TS12 Potential Easter Eggs",
-  "TTPD", "TV / Streaming Special", "TV / Web Interview", "TV Show Appearances",
-  "Talk Show", "Taylor Lautner", "Taylor Nation Post", "Taylor's Birthday",
-  "The Eras Tour", "The Errors Tour", "The Giver", "The Lorax", "Tiny Braid",
-  "Tom Hiddleston", "Travis Kelce", "Tree Paine", "Unique Tour Occurence",
-  "VSFS Ring", "Vacation", "Valentine's Day (Movie)",
-  "Victoria's Secret Fashion Show", "Vlog", "Wardrobe Malfunction", "White Wine",
-  "Will Anderson", "Wizard of Oz", "Zoe Kravitz", "folklore"
+  "New Eras Tour Outfit Variant", "Olivia Rodrigo", "Pap Walk / Sighting", "Paul McCartney",
+  "Plane Travel", "Politics", "Product Release", "Radio Show", "Rain Show",
+  "Real Estate", "Recording Studio", "Red", "Red Tour", "Reputation",
+  "Reputation Tour", "Sabrina Carpenter", "Sapphire Evil Eye Ring", "Scissor Jewelry",
+  "Secret Sessions", "Selena Gomez", "Setlist Change", "Sexual Assault Trial", "SNL",
+  "Social Media Activity", "Social Media Post", "Songwriting", "Sophie Turner", "Soundtrack",
+  "Speak Now", "Speak Now Tour", "Special Guest", "Stevie Nicks", "Talk Show",
+  "Taylor Lautner", "Taylor Nation Post", "Taylor's Birthday", "The Eras Tour",
+  "The Errors Tour", "The Giver", "The Lorax", "Tilly Necklace", "Tiny Braid",
+  "TNT Bracelet", "Tom Hiddleston", "Travis Kelce", "Tree Paine",
+  "TS12 Potential Easter Eggs", "TTPD", "TV / Streaming Special", "TV / Web Interview",
+  "TV Show Appearances", "Unique Tour Occurence", "Vacation", "Valentine's Day (Movie)",
+  "Victoria's Secret Fashion Show", "Vlog", "VSFS Ring", "Wardrobe Malfunction",
+  "White Wine", "Will Anderson", "Wizard of Oz", "Zoe Kravitz"
 ];
 
 export default function TimelineBody() {
@@ -123,18 +121,18 @@ export default function TimelineBody() {
     if (!keywordSearchQuery.trim()) {
       return ALL_KEYWORDS;
     }
-    
+
     const query = keywordSearchQuery.toLowerCase();
-    return ALL_KEYWORDS.filter(keyword => 
+    return ALL_KEYWORDS.filter(keyword =>
       keyword.toLowerCase().includes(query)
     ).sort((a, b) => {
       // Prioritize exact matches and starts with matches
       const aLower = a.toLowerCase();
       const bLower = b.toLowerCase();
-      
+
       if (aLower.startsWith(query) && !bLower.startsWith(query)) return -1;
       if (!aLower.startsWith(query) && bLower.startsWith(query)) return 1;
-      
+
       return a.localeCompare(b);
     });
   };
@@ -168,11 +166,11 @@ export default function TimelineBody() {
           const keywordFilters = filterKeywords.map(keyword => {
             return `FIND('${keyword}', ARRAYJOIN({KEYWORDS}, ',')) > 0`;
           });
-          
-          const keywordFormula = keywordMatchType === "any" 
+
+          const keywordFormula = keywordMatchType === "any"
             ? `OR(${keywordFilters.join(',')})`
             : `AND(${keywordFilters.join(',')})`;
-            
+
           filterFormula = filterFormula
             ? `AND(${filterFormula}, ${keywordFormula})`
             : keywordFormula;
@@ -340,9 +338,9 @@ export default function TimelineBody() {
       <div className="w-full max-w-4xl mx-auto px-4 mb-6">
         <div className="py-8 bg-[#fef2f2] rounded-lg text-center min-h-[100px] flex items-center justify-center">
           {process.env.NODE_ENV === 'production' ? (
-            <ins 
+            <ins
               className="adsbygoogle"
-              style={{ 
+              style={{
                 display: 'block',
                 width: '100%',
                 maxWidth: '728px',
@@ -594,11 +592,11 @@ export default function TimelineBody() {
               No posts found matching your criteria. Try different filters.
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-fr">
               {posts.map((post) => (
                 <div
                   key={post.id}
-                  className="bg-[#ffe8e8] rounded-xl overflow-hidden border border-[#ffcaca] flex flex-col hover:shadow-lg transition-shadow duration-200 cursor-pointer h-80"
+                  className="bg-[#ffe8e8] rounded-xl overflow-hidden border border-[#ffcaca] flex flex-col hover:shadow-lg transition-shadow duration-200 cursor-pointer h-full"
                   onClick={() => handleCardClick(post.id)}
                 >
                   <div className="relative pt-1 h-48 flex flex-col">
@@ -636,7 +634,7 @@ export default function TimelineBody() {
                     {/* Clickable tags */}
                     <div className="mt-auto">
                       <div className="flex flex-wrap gap-2">
-                        {post.keywords?.slice(0, 3).map((keyword, index) => (
+                        {post.keywords?.map((keyword, index) => (
                           <span
                             key={index}
                             className="bg-[#8a9ac7] text-white text-[10px] px-1.5 py-0.5 rounded-full whitespace-nowrap cursor-pointer hover:bg-[#6b7db3] transition-colors"
@@ -648,11 +646,6 @@ export default function TimelineBody() {
                             {keyword}
                           </span>
                         ))}
-                        {post.keywords?.length > 3 && (
-                          <span className="bg-gray-300 text-gray-600 text-[10px] px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                            +{post.keywords.length - 3}
-                          </span>
-                        )}
                       </div>
                     </div>
                   </div>
