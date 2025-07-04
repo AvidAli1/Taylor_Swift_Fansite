@@ -21,6 +21,9 @@ export default function Timeline() {
     const [currentMonth, setCurrentMonth] = useState(month);
     const [currentDay, setCurrentDay] = useState(day);
 
+    const utcDateStr = today.toISOString().split("T")[0];
+    console.log("Current UTC Date:", utcDateStr);
+
     useEffect(() => {
         const calculateScale = () => {
             const screenWidth = window.screen.width;
