@@ -21,7 +21,7 @@ export default function PostDetailBody() {
   // Parse query params manually using URLSearchParams
   const searchParams = new URLSearchParams(location.search);
   const postId = searchParams.get("id");
-  
+
   // State variables
   const [event, setEvent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,7 +31,7 @@ export default function PostDetailBody() {
   useEffect(() => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
-    
+
     // Also scroll to top when postId changes (in case of direct navigation)
   }, [postId]);
 
@@ -55,11 +55,11 @@ export default function PostDetailBody() {
             },
           }
         );
-        
+
         if (!response.ok) {
           throw new Error("Failed to fetch post details");
         }
-        
+
         const data = await response.json();
         setEvent(data.fields);
       } catch (error) {
@@ -136,7 +136,7 @@ export default function PostDetailBody() {
     // Load scripts based on available content
     if (event.INSTAGRAM) loadInstagramScript();
     if (event.TWITTER) loadTwitterScript();
-    
+
     // Load Getty Images script if needed
     if (event["GETTY EMBED"] && !document.getElementById("getty-embed-script")) {
       const script = document.createElement("script");
@@ -187,11 +187,11 @@ export default function PostDetailBody() {
   // Process source links for organizing
   const processSourceLinks = () => {
     if (!event.SOURCES) return { imageLinks: [], nonImageLinks: [] };
-    
+
     const rawUrls = event.SOURCES.split(" || ").map((url) => url.trim());
     const imageLinks = rawUrls.filter((url) => isLikelyImage(url));
     const nonImageLinks = rawUrls.filter((url) => !isLikelyImage(url) && url);
-    
+
     return { imageLinks, nonImageLinks };
   };
 
@@ -199,7 +199,7 @@ export default function PostDetailBody() {
 
   // Determine if we have videos from sources or YouTube
   const hasVideos = event.YOUTUBE || false;
-  
+
   return (
     <div className="bg-[#e6edf7] py-8 md:py-12">
       {/* Ad Placement */}
@@ -212,7 +212,7 @@ export default function PostDetailBody() {
           <p className="mb-2">
             {event.NOTES || "No additional details available for this post."}
           </p>
-          
+
           {/* Source links display */}
           {(nonImageLinks.length > 0) && (
             <div className="mt-4 border-t border-red-200 pt-4">
@@ -253,7 +253,7 @@ export default function PostDetailBody() {
                 }}
               />
             ))}
-            
+
             {/* From source links */}
             {imageLinks.map((url, index) => (
               <img
@@ -278,8 +278,8 @@ export default function PostDetailBody() {
         <div className="w-[90%] md:w-[80vw] mx-auto mb-6 mt-8 md:mt-16 rounded-xl border border-red-500 text-red-400 p-3 md:p-5 overflow-hidden">
           <p className="font-semibold mb-2 ml-4 md:ml-[116px] mt-3">Getty Images</p>
           <div className="flex justify-center w-full mt-4">
-            <div 
-              className="getty-embed w-full max-w-4xl" 
+            <div
+              className="getty-embed w-full max-w-4xl"
               dangerouslySetInnerHTML={{ __html: event["GETTY EMBED"] }}
             />
           </div>
@@ -343,12 +343,15 @@ export default function PostDetailBody() {
       {event.TWITTER && (
         <div className="w-[90%] md:w-[80vw] mx-auto mb-6 mt-8 md:mt-16 rounded-xl border border-red-500 text-red-400 p-3 md:p-5 overflow-hidden">
           <p className="font-semibold mb-2 ml-4 md:ml-[116px] mt-3">Twitter/X</p>
-          <div className="flex flex-wrap justify-center gap-4 mt-4">
+          <div className="flex flex-col items-center gap-4 mt-4 w-full overflow-x-auto px-2">
             {event.TWITTER.split(/ \|\| |\s+/).map((url, index) => {
               const cleanUrl = url.trim().replace("x.com", "twitter.com");
               const isValid = /^https:\/\/twitter\.com\/[^/]+\/status\/\d+/.test(cleanUrl);
               return isValid ? (
-                <div key={index} className="twitter-container">
+                <div
+                  key={index}
+                  className="twitter-container w-full max-w-[550px] min-w-[300px]"
+                >
                   <blockquote className="twitter-tweet" data-lang="en">
                     <a href={cleanUrl}>{cleanUrl}</a>
                   </blockquote>
@@ -376,7 +379,7 @@ export default function PostDetailBody() {
               {(() => {
                 // Determine if we're showing an IMAGE array image or a source image
                 const imageArrayLength = event.IMAGE?.length || 0;
-                
+
                 if (selectedImageIndex < imageArrayLength) {
                   // Show image from IMAGE array
                   return (
@@ -401,23 +404,23 @@ export default function PostDetailBody() {
                   );
                 }
               })()}
-              
-              <button 
-                className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-red-400 text-white rounded-full" 
+
+              <button
+                className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-red-400 text-white rounded-full"
                 onClick={closeModal}
               >
                 ✕
               </button>
-              
-              <button 
-                className="absolute left-2 top-1/2 transform -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-red-400 text-white rounded-full opacity-70 hover:opacity-100" 
+
+              <button
+                className="absolute left-2 top-1/2 transform -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-red-400 text-white rounded-full opacity-70 hover:opacity-100"
                 onClick={(e) => { e.stopPropagation(); prevImage(); }}
               >
                 ←
               </button>
-              
-              <button 
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-red-400 text-white rounded-full opacity-70 hover:opacity-100" 
+
+              <button
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-red-400 text-white rounded-full opacity-70 hover:opacity-100"
                 onClick={(e) => { e.stopPropagation(); nextImage(); }}
               >
                 →

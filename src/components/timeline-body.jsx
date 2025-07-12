@@ -101,20 +101,25 @@ export default function TimelineBody() {
     const keywordFromUrl = urlParams.get('keyword');
 
     if (keywordFromUrl) {
-      setFilterKeywords([keywordFromUrl]);
+      // Only process if not already in filter
+      if (!filterKeywords.includes(keywordFromUrl)) {
+        setFilterKeywords([keywordFromUrl]);
+      }
       setSearchQuery('');
       setStartDate('');
       setEndDate('');
       setMonthDay('');
       resetPagination();
 
-      // Clean up URL after applying the filter
-      urlParams.delete('keyword');
-      navigate(`?${urlParams.toString()}`, { replace: true });
+      // Clean up URL after state updates
+      setTimeout(() => {
+        urlParams.delete('keyword');
+        navigate(`?${urlParams.toString()}`, { replace: true });
+      }, 0);
     } else if (queryFromUrl) {
       setSearchQuery(queryFromUrl);
     }
-  }, [location.search, navigate]);
+  }, [location.search, navigate, filterKeywords]);
 
   // Function to filter keywords based on search query
   const getFilteredKeywords = () => {
@@ -691,7 +696,10 @@ export default function TimelineBody() {
       <div className="max-w-6xl mx-auto px-4 mb-0">
         <button
           className="w-full bg-[#c25e5e] text-white py-3 rounded-full font-medium"
-          onClick={() => navigate("/timeline")}
+          onClick={() => {
+            navigate("/timeline");
+            window.scrollTo(0, 0);
+          }}
         >
           View On This Day
         </button>

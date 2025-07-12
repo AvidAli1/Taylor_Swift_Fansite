@@ -351,10 +351,10 @@ export default function Timeline() {
                             {/* Center line - spans full height */}
                             <div className="absolute w-[2px] flex flex-col items-center h-full">
                                 <div className="w-[5px] bg-[#8a9ad4] h-full"></div>
-                                
+
                                 {/* Top circle */}
                                 <div className="absolute left-1/2 -translate-x-1/2 top-0 w-7 h-7 rounded-full bg-[#6B78B4]"></div>
-                                
+
                                 {/* Bottom circle */}
                                 <div className="absolute left-1/2 -translate-x-1/2 bottom-0 w-7 h-7 rounded-full bg-[#6B78B4]"></div>
                             </div>
@@ -384,7 +384,10 @@ export default function Timeline() {
                     <Button
                         variant="secondary"
                         className="rounded-full px-5 py-1.5 w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg"
-                        onClick={() => navigate("/posts")}
+                        onClick={() => {
+                            navigate("/posts");
+                            window.scrollTo(0,0);
+                        }}
                     >
                         View Full Timeline
                     </Button>

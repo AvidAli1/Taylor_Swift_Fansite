@@ -18,9 +18,9 @@ export default function SearchResults() {
   }
 
   const handleTagClick = (e, keyword) => {
-    e.stopPropagation()
-    navigate(`/posts?keyword=${encodeURIComponent(keyword)}`)
-  }
+    e.stopPropagation();
+    navigate(`/posts?keyword=${encodeURIComponent(keyword)}`);
+  };
 
   // Fetch search results from Airtable
   useEffect(() => {
@@ -35,6 +35,25 @@ export default function SearchResults() {
         setLoading(true)
         setError(null)
 
+        // Handle multiple search terms
+        const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 0)
+
+        // Create search conditions for each term across multiple fields
+        const searchConditions = searchTerms.map(term =>
+          `OR(
+        SEARCH("${term}", LOWER({EVENT})),
+        SEARCH("${term}", LOWER({NOTES})),
+        SEARCH("${term}", LOWER(ARRAYJOIN({KEYWORDS}, ", ")))
+      )`
+        )
+
+        // Combine all conditions with AND (all terms must match)
+        const filterFormula = searchConditions.length > 1
+          ? `AND(${searchConditions.join(', ')})`
+          : searchConditions[0]
+
+        console.log('Search filter:', filterFormula) // Debug log
+
         const response = await axios.get(
           "https://api.airtable.com/v0/appVhtDyx0VKlGbhy/Taylor%20Swift%20Master%20Tracker",
           {
@@ -42,13 +61,14 @@ export default function SearchResults() {
               Authorization: `Bearer ${import.meta.env.VITE_AIRTABLE_API_KEY}`,
             },
             params: {
-              maxRecords: 50,
-              filterByFormula: `SEARCH("${query}", {EVENT})`,
+              maxRecords: 100,
+              filterByFormula: filterFormula,
               sort: [{ field: "DATE", direction: "desc" }],
             },
           }
         )
 
+        console.log('Search results:', response.data.records) // Debug log
         setResults(response.data.records || [])
       } catch (error) {
         console.error("Error fetching search results:", error)
@@ -167,8 +187,8 @@ export default function SearchResults() {
         {results.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-10">
             {results.map((record) => (
-              <div 
-                key={record.id} 
+              <div
+                key={record.id}
                 className="bg-[#ffe8e8] rounded-xl overflow-hidden border border-[#ffcaca] flex flex-col hover:shadow-lg transition-shadow duration-200 cursor-pointer h-80"
                 onClick={() => handleReadMore(record.id)}
               >
@@ -177,10 +197,10 @@ export default function SearchResults() {
                   <div className="absolute -top-0.1 left-1/2 transform -translate-x-1/2 bg-white text-[#b91c1c] text-xs font-medium px-2 py-1 rounded-full z-10 min-w-[102px] text-center">
                     {record?.fields?.DATE
                       ? new Date(record.fields.DATE).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: '2-digit',
-                          year: 'numeric'
-                        })
+                        month: 'short',
+                        day: '2-digit',
+                        year: 'numeric'
+                      })
                       : 'No date'}
                   </div>
 
