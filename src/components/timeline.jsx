@@ -15,11 +15,11 @@ export default function Timeline() {
     const [screenScale, setScreenScale] = useState(1);
 
     const today = new Date();
-    const day = today.getUTCDate();
-    const month = today.getUTCMonth() + 1;
+    const utcDay = today.getUTCDate();
+    const utcMonth = today.getUTCMonth() + 1;
 
-    const [currentMonth, setCurrentMonth] = useState(month);
-    const [currentDay, setCurrentDay] = useState(day);
+    const [currentMonth, setCurrentMonth] = useState(utcMonth);
+    const [currentDay, setCurrentDay] = useState(utcDay);
 
     const utcDateStr = today.toISOString().split("T")[0];
     console.log("Current UTC Date:", utcDateStr);
@@ -274,11 +274,11 @@ export default function Timeline() {
 
                         <div className="bg-white rounded-full px-3 sm:px-5 md:px-7 py-1 md:py-1.5 min-w-[102px] sm:min-w-[136px] md:min-w-[170px] border border-[#b66b6b]">
                             <span className="text-[#8e3e3e] text-sm md:text-base font-medium">
-                                {records.length > 0 && records[0].fields?.DATE ?
-                                    new Date(records[0].fields.DATE).toLocaleDateString('en-US', {
+                                {currentMonth && currentDay ?
+                                    new Date(Date.UTC(2020, currentMonth - 1, currentDay)).toLocaleDateString('en-US', {
                                         month: 'long',
                                         day: 'numeric',
-                                        timeZone: 'UTC',  // Add this line to use UTC
+                                        timeZone: 'UTC'
                                     })
                                     : "Loading..."}
                             </span>
@@ -315,22 +315,36 @@ export default function Timeline() {
                     {/* Mobile Timeline (Single Column) */}
                     <div className="md:hidden h-[60vh] overflow-y-auto relative mobile-timeline-container">
                         <div className="relative flex justify-center">
-                            {/* Center line */}
+                            {/* Center line - dynamic height based on number of cards 
                             <div className="relative w-[2px] flex flex-col items-center bg-[#e8ecf7]">
-                                <div className="h-[1200px] w-[3px] bg-[#8a9ad4]"></div>
+                                <div
+                                    className="w-[3px] bg-[#8a9ad4]"
+                                    style={{ height: `${records.length * 323}px` }} // 120px per card
+                                ></div>
 
-                                {/* Circles on the line */}
-                                <div className="absolute left-1/2 -translate-x-1/2 top-[0px] w-4 h-4 rounded-full bg-[#6B78B4]"></div>
-                                {records.slice(1, 5).map((_, index) => (
-                                    <div
-                                        key={`mobile-circle-${index}`}
-                                        className={`absolute left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#FEE6E3] border-2 border-[#6B78B4]`}
-                                        style={{ top: `${120 + (index * 120)}px` }}
-                                    ></div>
-                                ))}
-                                <div className="absolute left-1/2 -translate-x-1/2 top-[720px] w-4 h-4 rounded-full bg-[#6B78B4]"></div>
+                                {/* Circles on the line 
+                                {records.length > 0 && (
+                                    <>
+                                        {/* Top circle 
+                                        <div className="absolute left-1/2 -translate-x-1/2 top-0 w-4 h-4 rounded-full bg-[#6B78B4]"></div>
+
+                                        {/* Middle circles for all cards except first and last 
+                                        {records.slice(1, records.length - 1).map((_, index) => (
+                                            <div
+                                                key={`mobile-circle-${index}`}
+                                                className="absolute left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#FEE6E3] border-2 border-[#6B78B4]"
+                                                style={{ top: `${120 + (index * 120)}px` }}
+                                            ></div>
+                                        ))}
+
+                                        {/* Bottom circle (only if more than 1 card) 
+                                        {records.length > 1 && (
+                                            <div className="absolute left-1/2 -translate-x-1/2 bottom-0 w-4 h-4 rounded-full bg-[#6B78B4]"></div>
+                                        )}
+                                    </>
+                                )}
                             </div>
-
+                            */}
                             {/* Mobile Timeline Items */}
                             <div className="absolute left-[17px] w-[calc(100%-26px)] space-y-[43px] pb-3">
                                 {records.map((record, index) => (
